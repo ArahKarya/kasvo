@@ -1,0 +1,19 @@
+# Development database only: `docker compose -f docker-compose.dev.yml up -d`, then `pnpm dev`.
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: kasvo
+      POSTGRES_PASSWORD: kasvo
+      POSTGRES_DB: kasvo
+    ports:
+      - "5433:5432"
+    volumes:
+      - kasvo-dev-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kasvo"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  kasvo-dev-pg:

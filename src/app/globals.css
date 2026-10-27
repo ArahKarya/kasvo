@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+/*
+ * Kasvo tokens. Calm ledger look: warm paper or graphite, one deep-green accent,
+ * income/expense colours only on numbers. Controls use a 4px radius, never pills.
+ */
+:root {
+  --bg: #f7f6f3;
+  --surface: #ffffff;
+  --border: #e4e2dc;
+  --text: #1c1b19;
+  --muted: #6b6860;
+  --accent: #1f6f50;
+  --accent-text: #ffffff;
+  --income: #1f7a4d;
+  --expense: #b4412f;
+  --danger: #b4412f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111312;
+    --surface: #191c1a;
+    --border: #2a2f2c;
+    --text: #e9ebe8;
+    --muted: #9aa39d;
+    --accent: #3fae80;
+    --accent-text: #0b1410;
+    --income: #4cc38a;
+    --expense: #ef7a64;
+    --danger: #ef7a64;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
+  --color-income: var(--income);
+  --color-expense: var(--expense);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --radius-sm: 4px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}

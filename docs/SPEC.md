@@ -52,8 +52,8 @@ agent uses, so both are held to the same rules and both leave an audit trail.
 | App | Next.js 16 (App Router), React 19, TypeScript strict |
 | DB | Postgres 17, Prisma 7 |
 | UI | Tailwind v4, Radix primitives, Recharts; small-radius (4px) controls, no pills |
-| i18n | next-intl, `id` (default) and `en` |
-| Auth | Email + password (argon2id), HTTP-only session cookie |
+| i18n | Typed in-repo dictionaries (`src/i18n`), `id` (default) and `en` |
+| Auth | Email + password (scrypt from node:crypto), HTTP-only session cookie |
 | MCP | `@modelcontextprotocol/sdk`, stdio + Streamable HTTP |
 | Validation | zod v4 at every boundary |
 | Tests | Vitest (unit + integration against a real Postgres), Playwright (e2e) |
@@ -161,7 +161,7 @@ audit log can be filtered by actor.
 
 ## 7. Security
 
-- Argon2id passwords; session cookie `HttpOnly`, `Secure` in production, `SameSite=Lax`.
+- scrypt passwords (parameters stored in the digest); session cookie `HttpOnly`, `Secure` in production, `SameSite=Lax`.
 - API tokens shown once, stored as sha256; revocable; optional expiry.
 - Destructive operations require `destructive` scope **and** confirmation.
 - Rate limit on login and `/api/mcp`.

@@ -1,0 +1,130 @@
+// Kasvo — data model. See docs/SPEC.md §3.
+//
+// Money is a signed BigInt in the account currency's minor unit (IDR has none), so an
+// expense of Rp25.000 is stored as -25000. Balances are always derived, never stored.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  locale       String   @default("id")
+  timezone     String   @default("Asia/Jakarta")
+  baseCurrency String   @default("IDR")
+  createdAt    DateTime @default(now())
+  lastLoginAt  DateTime?
+
+  sessions     Session[]
+  accounts     Account[]
+  categories   Category[]
+  transactions Transaction[]
+
+  @@map("users")
+}
+
+model Session {
+  /// Opaque random token; also the value of the session cookie.
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+enum AccountType {
+  BANK
+  EWALLET
+  CASH
+  CREDIT_CARD
+  LOAN
+  INVESTMENT
+}
+
+model Account {
+  id             String      @id @default(cuid())
+  userId         String
+  name           String
+  type           AccountType
+  institution    String?
+  currency       String      @default("IDR")
+  openingBalance BigInt      @default(0)
+  openingDate    DateTime    @db.Date
+  archivedAt     DateTime?
+  createdAt      DateTime    @default(now())
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([userId, name])
+  @@map("accounts")
+}
+
+enum CategoryKind {
+  INCOME
+  EXPENSE
+}
+
+model Category {
+  id         String       @id @default(cuid())
+  userId     String
+  name       String
+  kind       CategoryKind
+  parentId   String?
+  color      String?
+  archivedAt DateTime?
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent       Category?     @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children     Category[]    @relation("CategoryTree")
+  transactions Transaction[]
+
+  @@unique([userId, kind, name])
+  @@map("categories")
+}
+
+enum TransactionSource {
+  MANUAL
+  IMPORT
+  AGENT
+}
+
+model Transaction {
+  id          String            @id @default(cuid())
+  userId      String
+  accountId   String
+  bookedOn    DateTime          @db.Date
+  amount      BigInt
+  description String
+  payee       String?
+  note        String?
+  categoryId  String?
+  transferId  String?
+  fingerprint String
+  source      TransactionSource @default(MANUAL)
+  /// MCP client name when an agent created the row.
+  createdBy   String?
+  createdAt   DateTime          @default(now())
+  deletedAt   DateTime?
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account  Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([userId, bookedOn])
+  @@index([accountId, bookedOn])
+  @@index([accountId, fingerprint])
+  @@index([transferId])
+  @@map("transactions")
+}
