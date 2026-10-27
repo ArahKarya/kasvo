@@ -1,0 +1,14 @@
+node_modules
+mobile/node_modules
+mobile/android/app/build
+mobile/android/.gradle
+.next
+generated
+coverage
+.git
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.keystore

@@ -1,0 +1,33 @@
+# Self-hosted production stack: `docker compose -f docker-compose.prod.yml up -d`.
+# Put DB_PASSWORD (and optionally REGISTRATION, APP_PORT) in a .env next to this file.
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kasvo
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      POSTGRES_DB: kasvo
+    volumes:
+      - kasvo-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kasvo"]
+      interval: 5s
+      retries: 10
+
+  app:
+    image: ${KASVO_IMAGE:-kasvo:latest}
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://kasvo:${DB_PASSWORD}@db:5432/kasvo
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Jakarta}
+      REGISTRATION: ${REGISTRATION:-open}
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+
+volumes:
+  kasvo-pg:
