@@ -8,10 +8,11 @@ import { formatMoney } from "@/server/domain/money";
 import type { McpContext } from "./context";
 import { registerDestructiveTools } from "./tools/destructive";
 import { registerImportTools } from "./tools/imports";
+import { registerBudgetTools } from "./tools/budgets";
 import { registerReadTools } from "./tools/read";
 import { registerWriteTools } from "./tools/write";
 
-export const SERVER_INFO = { name: "kasvo", version: "0.3.0" } as const;
+export const SERVER_INFO = { name: "kasvo", version: "0.4.0" } as const;
 
 const INSTRUCTIONS = `Kasvo holds the user's personal finances (Indonesia first; amounts are whole rupiah unless an account says otherwise).
 - Start with kasvo_overview. Accounts and categories can be referenced by name or id.
@@ -30,6 +31,7 @@ export function createKasvoServer(ctx: McpContext): McpServer {
     registerResources(server, ctx);
     registerPrompts(server);
     registerImportTools(server, ctx);
+    registerBudgetTools(server, ctx);
   }
   if (ctx.scopes.includes("write")) registerWriteTools(server, ctx);
   if (ctx.scopes.includes("destructive")) registerDestructiveTools(server, ctx);
@@ -74,6 +76,25 @@ function registerPrompts(server: McpServer): void {
           content: {
             type: "text",
             text: `Give me a short review of my finances for ${month ?? "this month"}. Use kasvo_overview, kasvo_spending_breakdown, kasvo_compare_periods against the previous month, and kasvo_find_anomalies. Answer in my language with: total income and spending, the top 5 categories, the biggest changes versus last month and why, anything that looks unusual, and one concrete suggestion. Keep it under 250 words.`,
+          },
+        },
+      ],
+    }),
+  );
+  server.registerPrompt(
+    "budget_plan",
+    {
+      title: "Budget plan",
+      description: "Propose monthly budgets from recent spending, then set them after approval.",
+      argsSchema: { month: z.string().optional().describe("YYYY-MM to plan; defaults to the current month") },
+    },
+    ({ month }) => ({
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: `Help me plan budgets for ${month ?? "this month"}. Use kasvo_budget_status (it includes each category's average over the last 3 months and the biggest unbudgeted categories) and kasvo_spending_breakdown for the last 3 months. Propose a budget per expense category as a table with last-3-month average and your suggestion, rounded to sensible rupiah amounts, and keep the total below my typical income from kasvo_cashflow. After I approve or edit the table, save it with kasvo_set_budget.`,
           },
         },
       ],

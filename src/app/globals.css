@@ -15,6 +15,14 @@
   --income: #1f7a4d;
   --expense: #b4412f;
   --danger: #b4412f;
+  /* Chart marks only; text keeps --income/--expense. Validated with the dataviz palette checker. */
+  --chart-income: #008a72;
+  --chart-expense: #c94f1c;
+  --chart-bar: #008a72;
+  /* Status: always shown with an icon and a label, never colour alone. */
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-critical: #d03b3b;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,6 +37,9 @@
     --income: #4cc38a;
     --expense: #ef7a64;
     --danger: #ef7a64;
+    --chart-income: #1f9e8a;
+    --chart-expense: #e8613c;
+    --chart-bar: #1f9e8a;
   }
 }
 
@@ -43,6 +54,12 @@
   --color-income: var(--income);
   --color-expense: var(--expense);
   --color-danger: var(--danger);
+  --color-chart-income: var(--chart-income);
+  --color-chart-expense: var(--chart-expense);
+  --color-chart-bar: var(--chart-bar);
+  --color-status-good: var(--status-good);
+  --color-status-warning: var(--status-warning);
+  --color-status-critical: var(--status-critical);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --radius-sm: 4px;

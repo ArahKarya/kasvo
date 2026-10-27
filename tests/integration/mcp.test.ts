@@ -220,3 +220,18 @@ describe("mcp import tools", () => {
     expect((await call(client, "kasvo_commit_import", { importId: staged.batchId })).committed).toBe(1);
   });
 });
+
+describe("mcp budget tools", () => {
+  it("sets budgets by name and reports status", async () => {
+    const { client } = await setup();
+    await call(client, "kasvo_record_transaction", { kind: "EXPENSE", amount: "300rb", account: "BCA Gaji", description: "Belanja", category: "Belanja harian", date: "2026-10-03" });
+    const set = await call(client, "kasvo_set_budget", { month: "2026-10", budgets: [{ category: "Belanja harian", amount: "1jt" }, { category: "Hiburan", amount: 200000 }] });
+    expect(set.set).toBe(2);
+    const status = await call(client, "kasvo_budget_status", { month: "2026-10" });
+    expect(status.budgeted.value).toBe(1_200_000);
+    expect(status.budgets.find((b: { category: string }) => b.category === "Belanja harian")).toMatchObject({ usedPct: 30 });
+    const copied = await call(client, "kasvo_copy_budgets", { from: "2026-10", to: "2026-11" });
+    expect(copied.copied).toBe(2);
+    expect((await client.listPrompts()).prompts.map((p) => p.name)).toContain("budget_plan");
+  });
+});

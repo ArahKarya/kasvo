@@ -67,7 +67,7 @@ agent uses, so both are held to the same rules and both leave an audit trail.
 | `Category` | name, kind (`INCOME`, `EXPENSE`), parentId (one level), color, icon, archivedAt |
 | `Transaction` | accountId, bookedOn, amount (signed BigInt), description, payee, categoryId?, note, transferId?, importBatchId?, fingerprint, source (`MANUAL`, `IMPORT`, `AGENT`), deletedAt |
 | `Transfer` | links exactly two transactions (out and in), optional fee transaction |
-| `Budget` | categoryId, month (`YYYY-MM`), amount; optional rollover flag |
+| `Budget` | categoryId (expense), month (`YYYY-MM`), amount. A parent's budget covers its subcategories; warning at 80% used or when the pace projects past the limit. No rollover yet. |
 | `Rule` | priority, conditions (description contains/regex, amount range, account), actions (set category, set payee); `enabled` |
 | `ImportBatch` | accountId, format, fileName, fileHash, status (`STAGED`, `COMMITTED`, `REVERTED`), counts |
 | `StagedRow` | batchId, parsed fields, fingerprint, `duplicateOf?`, suggested category |
@@ -97,7 +97,7 @@ Names use the `kasvo_` prefix so they read clearly next to other servers' tools.
 | `kasvo_spending_breakdown` | Totals by category / payee / account for a period |
 | `kasvo_compare_periods` | Period A vs B per category, with biggest movers |
 | `kasvo_cashflow` | Income, expense, net per day/week/month |
-| `kasvo_budget_status` | Budget vs actual for a month, projected end-of-month (M4) |
+| `kasvo_budget_status` | Budget vs actual for a month, projected end-of-month |
 | `kasvo_find_anomalies` | Unusually large transactions, new payees, duplicate charges |
 | `kasvo_list_rules` | Categorization rules |
 | `kasvo_list_imports`, `kasvo_get_import` | Import history; review a staged batch row by row |
@@ -111,7 +111,8 @@ Names use the `kasvo_` prefix so they read clearly next to other servers' tools.
 | `kasvo_edit_transaction` | Change fields of one transaction |
 | `kasvo_categorize` | Set category for a list of transaction ids |
 | `kasvo_create_category` / `kasvo_create_account` | Setup |
-| `kasvo_set_budget` | Budget for a category and month (M4) |
+| `kasvo_set_budget` | Budgets for one or more categories in a month (0 removes) |
+| `kasvo_copy_budgets` | Copy last month's budgets, keeping any already set |
 | `kasvo_create_rule` | New categorization rule, with a dry-run count of matches |
 | `kasvo_stage_import` | Stage rows (from a supported file, or rows the agent parsed itself) |
 | `kasvo_commit_import` | Commit a staged batch, skipping duplicates; per-row category/skip changes |
@@ -128,7 +129,7 @@ Conventions:
 - Inputs validated with zod; errors return `{ code, message, hint }` the agent can act on.
 - Amounts in output are both raw (`amount`) and formatted (`"Rp1.250.000"`).
 - Every write returns the created/changed ids so the agent can follow up or undo.
-- MCP **prompts**: `monthly_review`, `categorize_uncategorized` (M2), `budget_plan` (M4).
+- MCP **prompts**: `monthly_review`, `categorize_uncategorized` (M2), `budget_plan`.
 - Accounts and categories may be passed by id or name; ambiguous names return `NOT_FOUND` with a hint.
 - A token's scopes decide which tools are even listed. `destructive` implies `write`, which implies `read`.
 - MCP **resources**: `kasvo://accounts`, `kasvo://categories` for cheap context.
