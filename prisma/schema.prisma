@@ -28,6 +28,8 @@ model User {
   categories   Category[]
   transactions Transaction[]
   auditLogs    AuditLog[]
+  apiTokens    ApiToken[]
+  pending      PendingAction[]
 
   @@map("users")
 }
@@ -154,4 +156,43 @@ model AuditLog {
   @@index([userId, at])
   @@index([entity, entityId])
   @@map("audit_logs")
+}
+
+/// Bearer token for the MCP server and API. Only a sha256 of the secret is stored.
+model ApiToken {
+  id         String    @id @default(cuid())
+  userId     String
+  name       String
+  /// First characters of the token, shown in the UI so the user can tell tokens apart.
+  prefix     String
+  tokenHash  String    @unique
+  /// Any of "read", "write", "destructive".
+  scopes     String[]
+  expiresAt  DateTime?
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("api_tokens")
+}
+
+/// A destructive request waiting for `kasvo_confirm`. Nothing changes until it is consumed.
+model PendingAction {
+  id         String    @id @default(cuid())
+  userId     String
+  clientName String?
+  tool       String
+  payload    Json
+  summary    String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@map("pending_actions")
 }

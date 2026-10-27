@@ -97,9 +97,9 @@ Names use the `kasvo_` prefix so they read clearly next to other servers' tools.
 | `kasvo_spending_breakdown` | Totals by category / payee / account for a period |
 | `kasvo_compare_periods` | Period A vs B per category, with biggest movers |
 | `kasvo_cashflow` | Income, expense, net per day/week/month |
-| `kasvo_budget_status` | Budget vs actual for a month, projected end-of-month |
+| `kasvo_budget_status` | Budget vs actual for a month, projected end-of-month (M4) |
 | `kasvo_find_anomalies` | Unusually large transactions, new payees, duplicate charges |
-| `kasvo_list_rules` | Categorization rules |
+| `kasvo_list_rules` | Categorization rules (M3) |
 
 **write**
 | Tool | Purpose |
@@ -110,26 +110,29 @@ Names use the `kasvo_` prefix so they read clearly next to other servers' tools.
 | `kasvo_edit_transaction` | Change fields of one transaction |
 | `kasvo_categorize` | Set category for a list of transaction ids |
 | `kasvo_create_category` / `kasvo_create_account` | Setup |
-| `kasvo_set_budget` | Budget for a category and month |
-| `kasvo_create_rule` | New categorization rule, with a dry-run count of matches |
-| `kasvo_stage_import` | Stage rows (from a supported file, or rows the agent parsed itself) |
-| `kasvo_commit_import` | Commit a staged batch, skipping duplicates |
+| `kasvo_set_budget` | Budget for a category and month (M4) |
+| `kasvo_create_rule` | New categorization rule, with a dry-run count of matches (M3) |
+| `kasvo_stage_import` | Stage rows (from a supported file, or rows the agent parsed itself) (M3) |
+| `kasvo_commit_import` | Commit a staged batch, skipping duplicates (M3) |
+| `kasvo_restore_transactions` | Undo a delete within 30 days |
 
 **destructive** (two-step)
 | Tool | Purpose |
 |---|---|
-| `kasvo_delete_transactions`, `kasvo_revert_import`, `kasvo_bulk_edit` | Return a `PendingAction` id and a human-readable summary; nothing changes yet |
+| `kasvo_delete_transactions` (M2), `kasvo_revert_import` (M3) | Return a `PendingAction` id and a human-readable summary; nothing changes yet |
 | `kasvo_confirm` | Executes a pending action by id |
 
 Conventions:
 - Inputs validated with zod; errors return `{ code, message, hint }` the agent can act on.
 - Amounts in output are both raw (`amount`) and formatted (`"Rp1.250.000"`).
 - Every write returns the created/changed ids so the agent can follow up or undo.
-- MCP **prompts**: `monthly_review`, `categorize_uncategorized`, `budget_plan`.
+- MCP **prompts**: `monthly_review`, `categorize_uncategorized` (M2), `budget_plan` (M4).
+- Accounts and categories may be passed by id or name; ambiguous names return `NOT_FOUND` with a hint.
+- A token's scopes decide which tools are even listed. `destructive` implies `write`, which implies `read`.
 - MCP **resources**: `kasvo://accounts`, `kasvo://categories` for cheap context.
 
 Transports:
-- **stdio**: `pnpm mcp` / `npx kasvo-mcp`, authenticates with `KASVO_TOKEN`.
+- **stdio**: `pnpm --silent --dir <repo> mcp`, authenticates with `KASVO_TOKEN`.
 - **HTTP**: `POST /api/mcp`, `Authorization: Bearer kv_…`. OAuth 2.1 is a later phase.
 
 ## 5. Import
