@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src http: https:" />
+  <title>Kasvo</title>
+  <link rel="stylesheet" href="setup.css" />
+</head>
+<body>
+  <main>
+    <p class="logo"><span aria-hidden="true">✓</span> Kasvo</p>
+    <section id="connecting" hidden>
+      <p data-t="connecting"></p>
+      <p class="server" id="connecting-url"></p>
+    </section>
+    <form id="setup" hidden novalidate>
+      <h1 data-t="title"></h1>
+      <p class="muted" data-t="intro"></p>
+      <label for="url" data-t="label"></label>
+      <input id="url" name="url" type="url" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false" placeholder="192.168.1.10:3100" required />
+      <p class="muted small" data-t="hint"></p>
+      <button type="submit" data-t="connect"></button>
+      <p id="error" class="error" role="alert"></p>
+    </form>
+  </main>
+  <script src="setup.js"></script>
+</body>
+</html>

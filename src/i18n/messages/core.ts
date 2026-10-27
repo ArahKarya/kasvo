@@ -30,6 +30,14 @@ export const en = {
     reports: "Reports",
     settings: "Settings",
   },
+  mobileNav: {
+    record: "Record",
+    more: "More",
+    recordTitle: "Record a transaction",
+    signedInAs: "Signed in as {email}",
+    language: "Language",
+    changeServer: "Change server",
+  },
   dashboard: {
     greeting: "Hello, {name}",
     netWorth: "Net worth",
@@ -77,6 +85,14 @@ export const id: typeof en = {
     import: "Impor",
     reports: "Laporan",
     settings: "Pengaturan",
+  },
+  mobileNav: {
+    record: "Catat",
+    more: "Lainnya",
+    recordTitle: "Catat transaksi",
+    signedInAs: "Masuk sebagai {email}",
+    language: "Bahasa",
+    changeServer: "Ganti server",
   },
   dashboard: {
     greeting: "Halo, {name}",

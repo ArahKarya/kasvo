@@ -1,0 +1,23 @@
+{
+  "name": "kasvo-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Android and iOS shell for a Kasvo server (Capacitor).",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "sync": "cap sync",
+    "android": "cap run android",
+    "ios": "cap run ios",
+    "apk": "cap sync android && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/ios": "8.5.3",
+    "@capacitor/status-bar": "8.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3"
+  }
+}

@@ -12,7 +12,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "db:migrate": "prisma migrate dev",
     "test:integration": "vitest run --config vitest.integration.config.mts",
-    "mcp": "node --conditions=react-server --import tsx src/mcp/stdio.mts"
+    "mcp": "node --conditions=react-server --import tsx src/mcp/stdio.mts",
+    "dev:lan": "next dev -p 3100 -H 0.0.0.0"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",

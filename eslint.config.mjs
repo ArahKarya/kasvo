@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The Capacitor shell: native projects and a static setup page, outside the Next app.
+    "mobile/**",
   ]),
 ]);
 

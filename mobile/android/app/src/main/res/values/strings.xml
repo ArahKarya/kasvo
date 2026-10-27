@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Kasvo</string>
+    <string name="title_activity_main">Kasvo</string>
+    <string name="package_name">com.arahkarya.kasvo</string>
+    <string name="custom_url_scheme">com.arahkarya.kasvo</string>
+</resources>

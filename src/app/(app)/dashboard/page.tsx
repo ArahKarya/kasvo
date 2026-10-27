@@ -27,14 +27,15 @@ interface StatProps {
   label: string;
   value: string;
   tone?: "income" | "expense";
+  className?: string;
 }
 
-function Stat({ label, value, tone }: StatProps) {
+function Stat({ label, value, tone, className = "" }: StatProps) {
   const color = tone === "income" ? "text-income" : tone === "expense" ? "text-expense" : "";
   return (
-    <div className="rounded-sm border border-border bg-surface p-4">
+    <div className={`min-w-0 rounded-sm border border-border bg-surface p-3 sm:p-4 ${className}`}>
       <p className="text-xs text-muted">{label}</p>
-      <p className={`num mt-1 text-2xl font-bold tracking-tight ${color}`}>{value}</p>
+      <p className={`num mt-1 truncate text-lg font-bold tracking-tight sm:text-2xl ${color}`}>{value}</p>
     </div>
   );
 }
@@ -74,8 +75,8 @@ export default async function DashboardPage() {
     <div className="mx-auto max-w-5xl space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">{fmt(t.dashboard.greeting, { name: user.name })}</h1>
 
-      <section className="grid gap-3 sm:grid-cols-3">
-        <Stat label={t.dashboard.netWorth} value={money(o.netWorth)} />
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <Stat label={t.dashboard.netWorth} value={money(o.netWorth)} className="col-span-2 sm:col-span-1" />
         <Stat label={t.dashboard.incomeThisMonth} value={money(o.incomeThisMonth)} tone="income" />
         <Stat label={t.dashboard.expenseThisMonth} value={money(o.expenseThisMonth)} tone="expense" />
       </section>

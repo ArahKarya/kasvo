@@ -1,0 +1,20 @@
+{
+  "appId": "com.arahkarya.kasvo",
+  "appName": "Kasvo",
+  "webDir": "www",
+  "appendUserAgent": "KasvoApp",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true,
+    "allowNavigation": ["*"]
+  },
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "StatusBar": {
+      "overlaysWebView": false,
+      "style": "DEFAULT"
+    }
+  }
+}

@@ -2,29 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeftRight, BarChart3, Download, Goal, HandCoins, LayoutDashboard, PiggyBank, Settings, Tags, Wallet, Wand2 } from "lucide-react";
+import { NAV_ITEMS } from "./nav-items";
 
-const ITEMS = [
-  { href: "/dashboard", key: "dashboard", icon: LayoutDashboard },
-  { href: "/transactions", key: "transactions", icon: ArrowLeftRight },
-  { href: "/accounts", key: "accounts", icon: Wallet },
-  { href: "/categories", key: "categories", icon: Tags },
-  { href: "/import", key: "import", icon: Download },
-  { href: "/rules", key: "rules", icon: Wand2 },
-  { href: "/budgets", key: "budgets", icon: PiggyBank },
-  { href: "/goals", key: "goals", icon: Goal },
-  { href: "/debts", key: "debts", icon: HandCoins },
-  { href: "/reports", key: "reports", icon: BarChart3 },
-  { href: "/settings", key: "settings", icon: Settings },
-] as const;
-
-export type NavLabels = Record<(typeof ITEMS)[number]["key"], string>;
+export type NavLabels = Record<(typeof NAV_ITEMS)[number]["key"], string>;
 
 export function Sidebar({ labels }: { labels: NavLabels }) {
   const pathname = usePathname();
   return (
     <nav className="flex gap-1 overflow-x-auto md:flex-col">
-      {ITEMS.map(({ href, key, icon: Icon }) => {
+      {NAV_ITEMS.map(({ href, key, icon: Icon }) => {
         const active = pathname === href || pathname.startsWith(`${href}/`);
         return (
           <Link

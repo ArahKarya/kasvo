@@ -10,6 +10,12 @@ import { DEFAULT_CATEGORIES } from "./domain/default-categories";
 
 export const SESSION_COOKIE = "kasvo_session";
 
+/**
+ * Secure cookies in production, unless COOKIE_SECURE=false: a self-hosted server reached over
+ * plain http on a home network (e.g. from the phone app) could otherwise never sign in.
+ */
+const secureCookies = (): boolean => (process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE !== "false" : process.env.NODE_ENV === "production");
+
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 
 export interface SessionUser {
@@ -34,7 +40,7 @@ async function startSession(userId: string): Promise<void> {
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: secureCookies(),
     path: "/",
     expires: expiresAt,
   });
