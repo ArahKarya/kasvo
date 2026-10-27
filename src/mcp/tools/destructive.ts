@@ -5,6 +5,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { db } from "@/server/db";
 import { deleteTransactions } from "@/server/domain/transactions";
 import { revertImport } from "@/server/domain/import/service";
+import { removeDebtPayment } from "@/server/domain/debts";
 import { getImport } from "@/server/domain/import/queries";
 import { consumePending, createPending } from "@/server/domain/pending";
 import { DomainError } from "@/server/domain/errors";
@@ -14,6 +15,7 @@ import { day, run } from "../result";
 
 const DELETE_TOOL = "kasvo_delete_transactions";
 const REVERT_TOOL = "kasvo_revert_import";
+const UNPAY_TOOL = "kasvo_remove_debt_payment";
 
 /**
  * Destructive tools never act directly. They return a pendingId and a summary; nothing
@@ -65,6 +67,25 @@ export function registerDestructiveTools(server: McpServer, ctx: McpContext): vo
   );
 
   server.registerTool(
+    UNPAY_TOOL,
+    {
+      title: "Remove a debt payment (step 1 of 2)",
+      description:
+        "Prepares removing a recorded debt payment (ids come from kasvo_get_debt). A transaction booked together with the payment is deleted too and can be restored for 30 days; a linked existing transaction is kept. Call kasvo_confirm only after the user agrees.",
+      inputSchema: { paymentId: z.string() },
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    ({ paymentId }) =>
+      run(async () => {
+        const p = await db.debtPayment.findFirst({ where: { id: paymentId, userId: ctx.actor.userId }, include: { debt: { select: { name: true } }, transaction: { select: { deletedAt: true } } } });
+        if (!p) throw new DomainError("NOT_FOUND", "not_found", `Payment ${paymentId} not found.`, "Call kasvo_get_debt for payment ids.");
+        const ledger = p.ledgerCreated && p.transaction && !p.transaction.deletedAt ? " and delete the transaction booked with it" : "";
+        const summary = `Remove the ${formatMoney(p.amount, ctx.currency, ctx.locale)} payment of ${day(p.paidOn)} from "${p.debt.name}"${ledger}.`;
+        return { ...(await createPending(ctx.actor, UNPAY_TOOL, { paymentId }, summary)), next: "Show this summary to the user. If they agree, call kasvo_confirm with pendingId." };
+      }),
+  );
+
+  server.registerTool(
     "kasvo_confirm",
     {
       title: "Confirm a pending action (step 2 of 2)",
@@ -82,6 +103,10 @@ export function registerDestructiveTools(server: McpServer, ctx: McpContext): vo
         if (tool === REVERT_TOOL) {
           const { importId } = z.object({ importId: z.string() }).parse(payload);
           return { done: tool, deleted: await revertImport(ctx.actor, importId), importId };
+        }
+        if (tool === UNPAY_TOOL) {
+          const { paymentId } = z.object({ paymentId: z.string() }).parse(payload);
+          return { done: tool, ...(await removeDebtPayment(ctx.actor, paymentId)) };
         }
         throw new DomainError("INVALID", "not_found", `Unknown pending tool ${tool}.`);
       }),

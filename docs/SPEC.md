@@ -90,7 +90,7 @@ Names use the `kasvo_` prefix so they read clearly next to other servers' tools.
 **read**
 | Tool | Purpose |
 |---|---|
-| `kasvo_overview` | Net worth, balances per account, this month's income/expense, budget health |
+| `kasvo_overview` | Net worth, balances per account, this month's income/expense, instalments due within 7 days |
 | `kasvo_list_accounts` | Accounts with current balance |
 | `kasvo_list_categories` | Category tree |
 | `kasvo_find_transactions` | Filter by date range, account, category, amount, text; paginated |
@@ -101,6 +101,8 @@ Names use the `kasvo_` prefix so they read clearly next to other servers' tools.
 | `kasvo_find_anomalies` | Unusually large transactions, new payees, duplicate charges |
 | `kasvo_list_rules` | Categorization rules |
 | `kasvo_list_imports`, `kasvo_get_import` | Import history; review a staged batch row by row |
+| `kasvo_list_goals` | Savings goals: progress, needed per month, projected date, state |
+| `kasvo_list_debts`, `kasvo_get_debt` | Debts and receivables: outstanding, next/overdue instalments, full schedule and payments |
 
 **write**
 | Tool | Purpose |
@@ -118,18 +120,20 @@ Names use the `kasvo_` prefix so they read clearly next to other servers' tools.
 | `kasvo_commit_import` | Commit a staged batch, skipping duplicates; per-row category/skip changes |
 | `kasvo_discard_import`, `kasvo_apply_rules` | Drop an uncommitted batch; run rules over uncategorized rows |
 | `kasvo_restore_transactions` | Undo a delete within 30 days |
+| `kasvo_create_goal`, `kasvo_update_goal`, `kasvo_contribute_goal` | Savings goals (linked account or manual contributions) |
+| `kasvo_create_debt`, `kasvo_pay_debt` | Debts/receivables; a payment books a transaction, a transfer to a linked loan account, or links an existing (imported) transaction |
 
 **destructive** (two-step)
 | Tool | Purpose |
 |---|---|
-| `kasvo_delete_transactions`, `kasvo_revert_import` | Return a `PendingAction` id and a human-readable summary; nothing changes yet |
+| `kasvo_delete_transactions`, `kasvo_revert_import`, `kasvo_remove_debt_payment` | Return a `PendingAction` id and a human-readable summary; nothing changes yet |
 | `kasvo_confirm` | Executes a pending action by id |
 
 Conventions:
 - Inputs validated with zod; errors return `{ code, message, hint }` the agent can act on.
 - Amounts in output are both raw (`amount`) and formatted (`"Rp1.250.000"`).
 - Every write returns the created/changed ids so the agent can follow up or undo.
-- MCP **prompts**: `monthly_review`, `categorize_uncategorized` (M2), `budget_plan`.
+- MCP **prompts**: `monthly_review`, `categorize_uncategorized` (M2), `budget_plan` (M4), `debt_plan` (M5: avalanche vs snowball).
 - Accounts and categories may be passed by id or name; ambiguous names return `NOT_FOUND` with a hint.
 - A token's scopes decide which tools are even listed. `destructive` implies `write`, which implies `read`.
 - MCP **resources**: `kasvo://accounts`, `kasvo://categories` for cheap context.
@@ -161,6 +165,12 @@ the header shape. Unrecognised files go to `NEEDS_MAPPING` and the user maps col
 agents can instead stage rows they extracted themselves (e.g. from a PDF). Fixtures are synthetic.
 Real statements are never committed; fixtures are synthetic.
 
+## 5b. Goals and debts (M5a)
+
+- A **goal** follows a linked account's balance, or the sum of manual contributions (negative = withdrawal). Kasvo shows what is needed per month to hit the target date and, from the last 90 days, the projected date. States: achieved, on track, behind, overdue, open (goals younger than 30 days are not judged).
+- A **debt** is BORROWED (the user owes) or LENT (owed to the user). Its schedule is never stored: `instalmentCount` monthly payments of `instalmentAmount` from `firstDueOn`, keeping the day of month (clamped in short months). A one-off debt has a count of 1.
+- **Payments** are applied to instalments oldest first. A payment can book an expense/income, a transfer to a linked LOAN/CREDIT_CARD account (so it is not counted as spending twice), or link a transaction that already exists, e.g. an imported bank row. A payment whose linked transaction is deleted stops counting.
+
 ## 6. UI (v1 screens)
 
 Dashboard · Transactions (filter, inline edit, bulk categorize) · Accounts · Budgets ·
@@ -187,5 +197,6 @@ audit log can be filtered by actor.
 | M2 | MCP server (read + write + destructive), tokens, audit log | Claude Code can record and analyze via stdio and HTTP |
 | M3 | Import: generic CSV + BCA/Mandiri/BRI/BNI, rules, dedup | A real statement imports with no duplicates on re-import |
 | M4 | Budgets, reports, dashboard | Monthly review prompt produces a useful answer |
-| M5 | Goals, debts/instalments, PDF + e-wallet import | — |
+| M5a | Savings goals, debts/receivables with instalment schedules | Done: schedule derived from terms, payments link to the ledger |
+| M5b | PDF (text-based, password supported) + e-wallet import | Real anonymised samples parse |
 | M6 | Mobile app (Expo) on the same API | — |

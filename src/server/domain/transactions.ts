@@ -69,27 +69,30 @@ async function checkCategory(tx: Tx, userId: string, id: string, kind: "INCOME" 
 
 export async function recordTransaction(actor: Actor, input: RecordTransactionInput): Promise<{ id: string }> {
   const data = recordTransactionSchema.parse(input);
-  return db.$transaction(async (tx) => {
-    await usableAccount(tx, actor.userId, data.accountId);
-    if (data.categoryId) await checkCategory(tx, actor.userId, data.categoryId, data.kind);
-    const amount = data.kind === "EXPENSE" ? -data.amount : data.amount;
-    const row = await tx.transaction.create({
-      data: {
-        userId: actor.userId,
-        accountId: data.accountId,
-        bookedOn: data.bookedOn,
-        amount,
-        description: data.description,
-        payee: data.payee,
-        note: data.note,
-        categoryId: data.categoryId,
-        fingerprint: fingerprint(data.accountId, data.bookedOn, amount, data.description),
-        ...sourceOf(actor),
-      },
-    });
-    await audit(tx, actor, { action: "transaction.create", entity: "Transaction", entityId: row.id, after: row });
-    return { id: row.id };
+  return db.$transaction((tx) => writeTransaction(tx, actor, data));
+}
+
+/** The body of recordTransaction, for callers that already hold a database transaction. */
+export async function writeTransaction(tx: Tx, actor: Actor, data: z.output<typeof recordTransactionSchema>): Promise<{ id: string }> {
+  await usableAccount(tx, actor.userId, data.accountId);
+  if (data.categoryId) await checkCategory(tx, actor.userId, data.categoryId, data.kind);
+  const amount = data.kind === "EXPENSE" ? -data.amount : data.amount;
+  const row = await tx.transaction.create({
+    data: {
+      userId: actor.userId,
+      accountId: data.accountId,
+      bookedOn: data.bookedOn,
+      amount,
+      description: data.description,
+      payee: data.payee,
+      note: data.note,
+      categoryId: data.categoryId,
+      fingerprint: fingerprint(data.accountId, data.bookedOn, amount, data.description),
+      ...sourceOf(actor),
+    },
   });
+  await audit(tx, actor, { action: "transaction.create", entity: "Transaction", entityId: row.id, after: row });
+  return { id: row.id };
 }
 
 /**
@@ -143,49 +146,52 @@ export async function editTransaction(actor: Actor, id: string, input: EditTrans
 
 export async function recordTransfer(actor: Actor, input: RecordTransferInput): Promise<{ transferId: string; ids: string[] }> {
   const data = recordTransferSchema.parse(input);
-  return db.$transaction(async (tx) => {
-    const from = await usableAccount(tx, actor.userId, data.fromAccountId);
-    const to = await usableAccount(tx, actor.userId, data.toAccountId);
-    if (from.currency !== to.currency) {
-      throw new DomainError("INVALID", "currency_mismatch", "Transfers between currencies are not supported yet.");
-    }
-    const transferId = randomUUID();
-    const description = data.description ?? `Transfer ${from.name} → ${to.name}`;
-    const leg = (accountId: string, amount: bigint) => ({
-      userId: actor.userId,
-      accountId,
-      bookedOn: data.bookedOn,
-      amount,
-      description,
-      note: data.note,
-      transferId,
-      fingerprint: fingerprint(accountId, data.bookedOn, amount, description),
-      ...sourceOf(actor),
-    });
-    const out = await tx.transaction.create({ data: leg(from.id, -data.amount) });
-    const into = await tx.transaction.create({ data: leg(to.id, data.amount) });
-    const ids = [out.id, into.id];
+  return db.$transaction((tx) => writeTransfer(tx, actor, data));
+}
 
-    if (data.fee) {
-      if (data.feeCategoryId) await checkCategory(tx, actor.userId, data.feeCategoryId, "EXPENSE");
-      const feeDescription = `Biaya transfer ke ${to.name}`;
-      const fee = await tx.transaction.create({
-        data: {
-          userId: actor.userId,
-          accountId: from.id,
-          bookedOn: data.bookedOn,
-          amount: -data.fee,
-          description: feeDescription,
-          categoryId: data.feeCategoryId,
-          fingerprint: fingerprint(from.id, data.bookedOn, -data.fee, feeDescription),
-          ...sourceOf(actor),
-        },
-      });
-      ids.push(fee.id);
-    }
-    await audit(tx, actor, { action: "transfer.create", entity: "Transfer", entityId: transferId, after: { ...data, ids } });
-    return { transferId, ids };
+/** The body of recordTransfer, for callers that already hold a database transaction. `ids[0]` is the sending leg. */
+export async function writeTransfer(tx: Tx, actor: Actor, data: z.output<typeof recordTransferSchema>): Promise<{ transferId: string; ids: string[] }> {
+  const from = await usableAccount(tx, actor.userId, data.fromAccountId);
+  const to = await usableAccount(tx, actor.userId, data.toAccountId);
+  if (from.currency !== to.currency) {
+    throw new DomainError("INVALID", "currency_mismatch", "Transfers between currencies are not supported yet.");
+  }
+  const transferId = randomUUID();
+  const description = data.description ?? `Transfer ${from.name} → ${to.name}`;
+  const leg = (accountId: string, amount: bigint) => ({
+    userId: actor.userId,
+    accountId,
+    bookedOn: data.bookedOn,
+    amount,
+    description,
+    note: data.note,
+    transferId,
+    fingerprint: fingerprint(accountId, data.bookedOn, amount, description),
+    ...sourceOf(actor),
   });
+  const out = await tx.transaction.create({ data: leg(from.id, -data.amount) });
+  const into = await tx.transaction.create({ data: leg(to.id, data.amount) });
+  const ids = [out.id, into.id];
+
+  if (data.fee) {
+    if (data.feeCategoryId) await checkCategory(tx, actor.userId, data.feeCategoryId, "EXPENSE");
+    const feeDescription = `Biaya transfer ke ${to.name}`;
+    const fee = await tx.transaction.create({
+      data: {
+        userId: actor.userId,
+        accountId: from.id,
+        bookedOn: data.bookedOn,
+        amount: -data.fee,
+        description: feeDescription,
+        categoryId: data.feeCategoryId,
+        fingerprint: fingerprint(from.id, data.bookedOn, -data.fee, feeDescription),
+        ...sourceOf(actor),
+      },
+    });
+    ids.push(fee.id);
+  }
+  await audit(tx, actor, { action: "transfer.create", entity: "Transfer", entityId: transferId, after: { ...data, ids } });
+  return { transferId, ids };
 }
 
 /** Soft delete. Deleting one leg of a transfer deletes both. Returns how many rows changed. */

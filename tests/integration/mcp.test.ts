@@ -235,3 +235,36 @@ describe("mcp budget tools", () => {
     expect((await client.listPrompts()).prompts.map((p) => p.name)).toContain("budget_plan");
   });
 });
+
+describe("mcp goals and debts", () => {
+  it("creates a goal and a debt, pays an instalment, and removes the payment in two steps", async () => {
+    const { client } = await setup(["destructive"]);
+    const goal = await call(client, "kasvo_create_goal", { name: "Liburan", target: "6jt", targetDate: "2099-12-31" });
+    expect(goal).toMatchObject({ name: "Liburan", trackedBy: "manual contributions", state: "open" });
+    const after = await call(client, "kasvo_contribute_goal", { goal: "liburan", amount: "1,5jt" });
+    expect(after.saved.value).toBe(1_500_000);
+
+    const debt = await call(client, "kasvo_create_debt", { name: "Paylater", direction: "BORROWED", principal: "3jt", instalmentCount: 3, firstDueOn: "2099-01-10", annualRatePct: 24 });
+    expect(debt).toMatchObject({ instalment: { value: 1_000_000 }, instalments: "0/3 paid", annualRatePct: 24 });
+
+    const paid = await call(client, "kasvo_pay_debt", { debt: "Paylater", account: "BCA Gaji" });
+    expect(paid).toMatchObject({ amount: { value: 1_000_000 }, outstanding: { value: 2_000_000 }, next: "2099-02-10" });
+    expect((await call(client, "kasvo_overview")).netWorth.value).toBe(1_000_000);
+
+    const detail = await call(client, "kasvo_get_debt", { debt: "Paylater" });
+    expect(detail.schedule.map((l: { status: string }) => l.status)).toEqual(["paid", "upcoming", "upcoming"]);
+    const pending = await call(client, "kasvo_remove_debt_payment", { paymentId: detail.payments[0].id });
+    expect(pending.summary).toContain("delete the transaction booked with it");
+    expect((await call(client, "kasvo_list_debts")).debts[0].instalments).toBe("1/3 paid");
+    const done = await call(client, "kasvo_confirm", { pendingId: pending.pendingId });
+    expect(done).toMatchObject({ transactionsDeleted: 1 });
+    expect((await call(client, "kasvo_list_debts")).debts[0].instalments).toBe("0/3 paid");
+    expect((await call(client, "kasvo_overview")).netWorth.value).toBe(2_000_000);
+  });
+
+  it("explains a missing debt instead of failing silently", async () => {
+    const { client } = await setup(["write"]);
+    const r = await call(client, "kasvo_pay_debt", { debt: "nope", account: "BCA Gaji" });
+    expect(r.error).toMatchObject({ code: "NOT_FOUND", hint: "Call kasvo_list_debts for names and ids." });
+  });
+});

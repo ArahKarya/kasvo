@@ -2,19 +2,24 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Wallet } from "lucide-react";
 import { BudgetMeter } from "@/components/budget-meter";
+import { DEBT_TONE } from "@/components/plan-tones";
+import { GoalCard } from "@/components/goal-card";
+import { StatusLabel } from "@/components/status-meter";
 import { CashflowChart } from "@/components/cashflow-chart";
 import { TransactionList } from "@/components/transaction-list";
 import { Card } from "@/components/ui";
 import { requireUser } from "@/server/auth";
 import { db } from "@/server/db";
 import { budgetStatus } from "@/server/domain/budgets";
+import { debtsDue } from "@/server/domain/debts";
+import { listGoals } from "@/server/domain/goals";
 import { todayIn } from "@/server/domain/dates";
 import { monthlyCashflow } from "@/server/domain/insights";
 import { formatMoney } from "@/server/domain/money";
 import { getOverview } from "@/server/domain/overview";
 import { findTransactions } from "@/server/domain/transaction-queries";
 import { getDictionary } from "@/i18n/server";
-import { fmt, intlLocale } from "@/i18n/dictionaries";
+import { fmt, formatDay, intlLocale } from "@/i18n/dictionaries";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -52,12 +57,16 @@ export default async function DashboardPage() {
   const today = todayIn(timezone);
   const month = today.slice(0, 7);
   const il = intlLocale(locale);
-  const [o, recent, budgets, points] = await Promise.all([
+  const [o, recent, budgets, points, due, goals] = await Promise.all([
     getOverview(user.id, timezone),
     findTransactions(user.id, { pageSize: 8 }),
     budgetStatus(user.id, month, today),
     monthlyCashflow(user.id, month, 6, il, user.baseCurrency),
+    debtsDue(user.id, today),
+    listGoals(user.id, today),
   ]);
+  const date = (d: string) => formatDay(d, il);
+  const openGoals = goals.filter((g) => g.progress.state !== "achieved").slice(0, 3);
   const money = (v: bigint) => formatMoney(v, user.baseCurrency, il);
   const hasHistory = points.some((p) => p.income > 0 || p.expense > 0);
 
@@ -107,6 +116,44 @@ export default async function DashboardPage() {
                     </div>
                     <BudgetMeter used={l.used} projected={l.amount === 0n ? 0 : Number(l.projected) / Number(l.amount)} state={l.state} label={t.budgets.state[l.state]} />
                   </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {(due.length > 0 || openGoals.length > 0) && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {due.length > 0 && (
+            <Card>
+              <SectionHead title={t.plansDashboard.due} href="/debts" more={t.dashboard.seeAll} />
+              <ul className="divide-y divide-border text-sm">
+                {due.map((d) => (
+                  <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                    <span className="min-w-0">
+                      <Link href={`/debts/${d.id}`} className="font-medium hover:underline">
+                        {d.name}
+                      </Link>
+                      <span className="block text-xs text-muted">
+                        {d.status.next ? date(d.status.next.dueOn) : ""} · {d.direction === "BORROWED" ? t.plansDashboard.owe : t.plansDashboard.owed}
+                      </span>
+                    </span>
+                    <span className="text-right">
+                      <span className="num block font-medium">{money(d.status.next ? d.status.next.amount - d.status.next.paid : 0n)}</span>
+                      <StatusLabel tone={DEBT_TONE[d.status.state]} label={t.debts.state[d.status.state]} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+          {openGoals.length > 0 && (
+            <Card className={due.length > 0 ? "" : "lg:col-span-2"}>
+              <SectionHead title={t.plansDashboard.goals} href="/goals" more={t.dashboard.seeAll} />
+              <ul className="space-y-2 [&>li]:border-0 [&>li]:p-0">
+                {openGoals.map((g) => (
+                  <GoalCard key={g.id} goal={g} t={t} money={money} date={date} />
                 ))}
               </ul>
             </Card>

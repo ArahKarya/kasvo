@@ -34,3 +34,9 @@ export const optionalText = (max: number) =>
     .max(max)
     .optional()
     .transform((v) => (v ? v : undefined));
+
+/** An optional day where an empty form field means "not set". */
+export const optionalDaySchema = z.union([z.literal("").transform(() => undefined), daySchema]).optional();
+
+/** An optional id where an empty form field means "not set". */
+export const optionalIdSchema = z.union([z.literal("").transform(() => undefined), idSchema]).optional();

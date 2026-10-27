@@ -11,7 +11,12 @@ export type DomainErrorReason =
   | "currency_mismatch"
   | "import_state"
   | "too_large"
-  | "no_rows";
+  | "no_rows"
+  | "account_type"
+  | "goal_linked"
+  | "debt_settled"
+  | "already_linked"
+  | "payment_direction";
 
 /** An error the caller can show or act on. `hint` tells an agent what to try next. */
 export class DomainError extends Error {

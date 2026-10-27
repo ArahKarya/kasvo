@@ -35,6 +35,11 @@ export const en = {
     import_state: "This import can no longer be changed.",
     too_large: "The file is too large. Export a shorter period.",
     no_rows: "No transactions found with those columns.",
+    account_type: "Link a loan or credit card account.",
+    goal_linked: "This goal follows an account balance. Transfer money into that account instead.",
+    debt_settled: "This debt is already paid off.",
+    already_linked: "That transaction is already linked to a payment.",
+    payment_direction: "Pick money going out for a debt you owe, or money coming in for one owed to you.",
   },
   accountType: {
     BANK: "Bank",
@@ -147,6 +152,11 @@ export const id: typeof en = {
     import_state: "Impor ini sudah tidak bisa diubah.",
     too_large: "File terlalu besar. Ekspor periode yang lebih pendek.",
     no_rows: "Tidak ada transaksi yang terbaca dengan kolom itu.",
+    account_type: "Tautkan rekening bertipe pinjaman atau kartu kredit.",
+    goal_linked: "Target ini mengikuti saldo rekening. Transfer uang ke rekening itu saja.",
+    debt_settled: "Utang ini sudah lunas.",
+    already_linked: "Transaksi itu sudah ditautkan ke pembayaran lain.",
+    payment_direction: "Pilih uang keluar untuk utang Anda, atau uang masuk untuk piutang.",
   },
   accountType: {
     BANK: "Bank",

@@ -9,10 +9,11 @@ import type { McpContext } from "./context";
 import { registerDestructiveTools } from "./tools/destructive";
 import { registerImportTools } from "./tools/imports";
 import { registerBudgetTools } from "./tools/budgets";
+import { registerPlanTools } from "./tools/plans";
 import { registerReadTools } from "./tools/read";
 import { registerWriteTools } from "./tools/write";
 
-export const SERVER_INFO = { name: "kasvo", version: "0.4.0" } as const;
+export const SERVER_INFO = { name: "kasvo", version: "0.5.0" } as const;
 
 const INSTRUCTIONS = `Kasvo holds the user's personal finances (Indonesia first; amounts are whole rupiah unless an account says otherwise).
 - Start with kasvo_overview. Accounts and categories can be referenced by name or id.
@@ -20,6 +21,7 @@ const INSTRUCTIONS = `Kasvo holds the user's personal finances (Indonesia first;
 - Amount inputs accept Indonesian notation: "25rb", "1,5jt", "Rp1.250.000".
 - Destructive tools only prepare a change: show the returned summary to the user and call kasvo_confirm only after they agree.
 - To import a bank statement: kasvo_stage_import (CSV text, or rows you read from a PDF), review with kasvo_get_import, then kasvo_commit_import.
+- Savings goals and debts: kasvo_list_goals, kasvo_list_debts. When a debt payment already appears as a transaction (e.g. imported), link it with kasvo_pay_debt's transactionId instead of booking it again.
 - Every change is recorded in the user's audit log under this client's name.`;
 
 /** One server per request or stdio session, with tools limited to the token's scopes. */
@@ -32,6 +34,7 @@ export function createKasvoServer(ctx: McpContext): McpServer {
     registerPrompts(server);
     registerImportTools(server, ctx);
     registerBudgetTools(server, ctx);
+    registerPlanTools(server, ctx);
   }
   if (ctx.scopes.includes("write")) registerWriteTools(server, ctx);
   if (ctx.scopes.includes("destructive")) registerDestructiveTools(server, ctx);
@@ -95,6 +98,25 @@ function registerPrompts(server: McpServer): void {
           content: {
             type: "text",
             text: `Help me plan budgets for ${month ?? "this month"}. Use kasvo_budget_status (it includes each category's average over the last 3 months and the biggest unbudgeted categories) and kasvo_spending_breakdown for the last 3 months. Propose a budget per expense category as a table with last-3-month average and your suggestion, rounded to sensible rupiah amounts, and keep the total below my typical income from kasvo_cashflow. After I approve or edit the table, save it with kasvo_set_budget.`,
+          },
+        },
+      ],
+    }),
+  );
+  server.registerPrompt(
+    "debt_plan",
+    {
+      title: "Debt payoff plan",
+      description: "Compare avalanche and snowball payoff orders for the debts the user owes.",
+      argsSchema: { extraPerMonth: z.string().optional().describe('Extra money per month for repayments, e.g. "1jt"') },
+    },
+    ({ extraPerMonth }) => ({
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: `Help me plan paying off my debts. Use kasvo_list_debts (only the ones I owe, not settled) and kasvo_cashflow for my typical monthly surplus. ${extraPerMonth ? `I can put an extra ${extraPerMonth} per month towards debt.` : "Estimate how much extra I could put towards debt from my surplus, and say how you estimated it."} Compare two orders for the extra money: avalanche (highest interest first; debts without a rate are 0%) and snowball (smallest outstanding first). For each, give a table of the order, the month each debt is cleared, and the total interest where rates are known. Flag any overdue instalments first. Recommend one order in two sentences. Do not change any data.`,
           },
         },
       ],

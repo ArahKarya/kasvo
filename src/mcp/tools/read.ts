@@ -4,12 +4,13 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { listAccounts } from "@/server/domain/accounts";
 import { listCategories } from "@/server/domain/categories";
+import { debtsDue } from "@/server/domain/debts";
 import { getOverview } from "@/server/domain/overview";
 import { cashflow, comparePeriods, findAnomalies, spendingBreakdown } from "@/server/domain/reports";
 import { findTransactions } from "@/server/domain/transaction-queries";
 import type { McpContext } from "../context";
 import { day, money, run } from "../result";
-import { resolveAccount, resolveCategory, thisMonth } from "../resolve";
+import { resolveAccount, resolveCategory, thisMonth, today } from "../resolve";
 
 const READ = { readOnlyHint: true, openWorldHint: false } as const;
 const dayArg = z.string().describe("YYYY-MM-DD");
@@ -26,12 +27,12 @@ export function registerReadTools(server: McpServer, ctx: McpContext): void {
     "kasvo_overview",
     {
       title: "Financial overview",
-      description: "Net worth, balance of every active account, and this month's income and spending. Start here for any question about the user's money.",
+      description: "Net worth, balance of every active account, this month's income and spending, and debt instalments overdue or due within 7 days. Start here for any question about the user's money.",
       annotations: READ,
     },
     () =>
       run(async () => {
-        const [o, accounts] = await Promise.all([getOverview(userId, ctx.timezone), listAccounts(userId)]);
+        const [o, accounts, due] = await Promise.all([getOverview(userId, ctx.timezone), listAccounts(userId), debtsDue(userId, today(ctx))]);
         return {
           currency: ctx.currency,
           month: thisMonth(ctx),
@@ -39,6 +40,13 @@ export function registerReadTools(server: McpServer, ctx: McpContext): void {
           incomeThisMonth: money(ctx, o.incomeThisMonth),
           spendingThisMonth: money(ctx, o.expenseThisMonth),
           accounts: accounts.map((a) => ({ id: a.id, name: a.name, type: a.type, balance: money(ctx, a.balance, a.currency) })),
+          debtsDueSoon: due.map((d) => ({
+            debt: d.name,
+            direction: d.direction === "BORROWED" ? "I owe" : "owed to me",
+            dueOn: d.status.next?.dueOn,
+            amount: money(ctx, d.status.next ? d.status.next.amount - d.status.next.paid : 0n),
+            overdueInstalments: d.status.overdueCount,
+          })),
         };
       }),
   );

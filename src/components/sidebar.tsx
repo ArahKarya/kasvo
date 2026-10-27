@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeftRight, BarChart3, Download, LayoutDashboard, PiggyBank, Settings, Tags, Wallet, Wand2 } from "lucide-react";
+import { ArrowLeftRight, BarChart3, Download, Goal, HandCoins, LayoutDashboard, PiggyBank, Settings, Tags, Wallet, Wand2 } from "lucide-react";
 
 const ITEMS = [
   { href: "/dashboard", key: "dashboard", icon: LayoutDashboard },
@@ -12,6 +12,8 @@ const ITEMS = [
   { href: "/import", key: "import", icon: Download },
   { href: "/rules", key: "rules", icon: Wand2 },
   { href: "/budgets", key: "budgets", icon: PiggyBank },
+  { href: "/goals", key: "goals", icon: Goal },
+  { href: "/debts", key: "debts", icon: HandCoins },
   { href: "/reports", key: "reports", icon: BarChart3 },
   { href: "/settings", key: "settings", icon: Settings },
 ] as const;

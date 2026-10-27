@@ -7,6 +7,7 @@ agent can record, categorize, and analyze your money.
 
 - Accounts for banks, e-wallets, cash, and credit cards (IDR first)
 - Import statements from BCA, Mandiri, BRI, BNI
+- Budgets, reports, savings goals, and debts/instalments (cicilan) with due dates
 - MCP tools for reading, writing, and safe two-step destructive actions
 - Bilingual UI: Bahasa Indonesia and English
 - Self-hosted with Docker
