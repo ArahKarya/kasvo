@@ -7,8 +7,9 @@ android {
         applicationId "com.arahkarya.kasvo"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // CI passes the release tag and run number; local builds stay 0.1.0 (1).
+        versionCode Integer.parseInt(System.getenv("KASVO_VERSION_CODE") ?: "1")
+        versionName System.getenv("KASVO_VERSION_NAME") ?: "0.1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +17,23 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Release signing comes from the environment (GitHub Actions secrets); without it the
+    // release build is left unsigned. The key itself is never in the repository.
+    def keystore = System.getenv("KASVO_KEYSTORE_PATH")
+    signingConfigs {
+        if (keystore) {
+            release {
+                storeFile file(keystore)
+                storeType "pkcs12"
+                storePassword System.getenv("KASVO_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KASVO_KEY_ALIAS")
+                keyPassword System.getenv("KASVO_KEYSTORE_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
+            if (keystore) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

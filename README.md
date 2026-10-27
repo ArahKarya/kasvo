@@ -12,6 +12,12 @@ agent can record, categorize, and analyze your money.
 - Bilingual UI: Bahasa Indonesia and English
 - Self-hosted with Docker
 
+## Android app
+
+Download the signed APK from [Releases](https://github.com/ArahKarya/kasvo/releases), install it, and enter
+your Kasvo server's address. The app opens your own server (it needs a connection); see
+[mobile/README.md](mobile/README.md) for running it against your laptop and for iOS.
+
 ## License
 
 [AGPL-3.0-only](LICENSE). Kasvo is an independent clean-room implementation; see
