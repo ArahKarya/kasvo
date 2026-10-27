@@ -178,3 +178,45 @@ describe("mcp destructive tools", () => {
     expect(await db.transaction.count({ where: { id: a.id, deletedAt: null } })).toBe(1);
   });
 });
+
+describe("mcp import tools", () => {
+  it("stages a CSV, reviews, commits with a change, and reverts in two steps", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { client } = await setup();
+    const csv = readFileSync(new URL("../fixtures/statements/bca.csv", import.meta.url), "utf8");
+
+    const rule = await call(client, "kasvo_create_rule", { contains: "indomaret", category: "Belanja harian" });
+    expect(rule.matchesExisting).toBe(0);
+
+    const staged = await call(client, "kasvo_stage_import", { account: "BCA Gaji", csv, fileName: "bca.csv" });
+    expect(staged).toMatchObject({ status: "STAGED", rowCount: 5 });
+
+    const review = await call(client, "kasvo_get_import", { importId: staged.batchId });
+    expect(review.rows.filter((r: { category: string | null }) => r.category === "Belanja harian")).toHaveLength(2);
+    const atm = review.rows.find((r: { description: string }) => r.description.startsWith("TARIKAN"));
+    const fee = review.rows.find((r: { description: string }) => r.description === "BIAYA ADM");
+
+    const committed = await call(client, "kasvo_commit_import", {
+      importId: staged.batchId,
+      changes: [{ rowId: atm.rowId, skip: true }, { rowId: fee.rowId, category: "Biaya admin bank" }],
+    });
+    expect(committed).toEqual({ committed: 4, skipped: 1 });
+
+    const pending = await call(client, "kasvo_revert_import", { importId: staged.batchId });
+    expect(pending.summary).toMatch(/remove 4 transaction/);
+    expect(await db.transaction.count({ where: { importBatchId: staged.batchId, deletedAt: null } })).toBe(4);
+    const done = await call(client, "kasvo_confirm", { pendingId: pending.pendingId });
+    expect(done.deleted).toBe(4);
+  });
+
+  it("stages rows the agent extracted itself", async () => {
+    const { client } = await setup();
+    const staged = await call(client, "kasvo_stage_import", {
+      account: "GoPay",
+      fileName: "gopay-oktober.pdf",
+      rows: [{ date: "2026-10-12", amount: "-23rb", description: "GoFood" }],
+    });
+    expect(staged).toMatchObject({ format: "agent", rowCount: 1 });
+    expect((await call(client, "kasvo_commit_import", { importId: staged.batchId })).committed).toBe(1);
+  });
+});

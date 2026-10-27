@@ -7,16 +7,18 @@ import { listCategories } from "@/server/domain/categories";
 import { formatMoney } from "@/server/domain/money";
 import type { McpContext } from "./context";
 import { registerDestructiveTools } from "./tools/destructive";
+import { registerImportTools } from "./tools/imports";
 import { registerReadTools } from "./tools/read";
 import { registerWriteTools } from "./tools/write";
 
-export const SERVER_INFO = { name: "kasvo", version: "0.2.0" } as const;
+export const SERVER_INFO = { name: "kasvo", version: "0.3.0" } as const;
 
 const INSTRUCTIONS = `Kasvo holds the user's personal finances (Indonesia first; amounts are whole rupiah unless an account says otherwise).
 - Start with kasvo_overview. Accounts and categories can be referenced by name or id.
 - Negative amounts are money out. Transfers between the user's own accounts are never income or spending.
 - Amount inputs accept Indonesian notation: "25rb", "1,5jt", "Rp1.250.000".
 - Destructive tools only prepare a change: show the returned summary to the user and call kasvo_confirm only after they agree.
+- To import a bank statement: kasvo_stage_import (CSV text, or rows you read from a PDF), review with kasvo_get_import, then kasvo_commit_import.
 - Every change is recorded in the user's audit log under this client's name.`;
 
 /** One server per request or stdio session, with tools limited to the token's scopes. */
@@ -27,6 +29,7 @@ export function createKasvoServer(ctx: McpContext): McpServer {
     registerReadTools(server, ctx);
     registerResources(server, ctx);
     registerPrompts(server);
+    registerImportTools(server, ctx);
   }
   if (ctx.scopes.includes("write")) registerWriteTools(server, ctx);
   if (ctx.scopes.includes("destructive")) registerDestructiveTools(server, ctx);

@@ -5,7 +5,7 @@ import type { FormState } from "@/app/actions/ledger";
 import { buttonClass } from "./ui";
 
 interface ActionFormProps {
-  action: (state: FormState, form: FormData) => Promise<FormState>;
+  action: (state: FormState & { message?: string }, form: FormData) => Promise<FormState & { message?: string }>;
   submit: string;
   /** Shown after a successful submit. */
   success?: string;
@@ -36,9 +36,9 @@ export function ActionForm({ action, submit, success, resetOnSuccess = false, cl
             {state.error}
           </p>
         )}
-        {state.ok && success && !pending && (
+        {state.ok && (state.message ?? success) && !pending && (
           <p role="status" className="text-sm text-income">
-            {success}
+            {state.message ?? success}
           </p>
         )}
       </div>

@@ -30,6 +30,8 @@ model User {
   auditLogs    AuditLog[]
   apiTokens    ApiToken[]
   pending      PendingAction[]
+  imports      ImportBatch[]
+  rules        Rule[]
 
   @@map("users")
 }
@@ -69,6 +71,8 @@ model Account {
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  imports      ImportBatch[]
+  rules        Rule[]
 
   @@unique([userId, name])
   @@map("accounts")
@@ -92,6 +96,8 @@ model Category {
   parent       Category?     @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
   children     Category[]    @relation("CategoryTree")
   transactions Transaction[]
+  rules        Rule[]
+  stagedRows   StagedRow[]
 
   @@unique([userId, kind, name])
   @@map("categories")
@@ -114,6 +120,7 @@ model Transaction {
   note        String?
   categoryId  String?
   transferId  String?
+  importBatchId String?
   fingerprint String
   source      TransactionSource @default(MANUAL)
   /// MCP client name when an agent created the row.
@@ -124,11 +131,13 @@ model Transaction {
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   account  Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
   category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  importBatch ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
 
   @@index([userId, bookedOn])
   @@index([accountId, bookedOn])
   @@index([accountId, fingerprint])
   @@index([transferId])
+  @@index([importBatchId])
   @@map("transactions")
 }
 
@@ -195,4 +204,94 @@ model PendingAction {
 
   @@index([userId, expiresAt])
   @@map("pending_actions")
+}
+
+enum ImportStatus {
+  /// Parsed rows are waiting for review.
+  STAGED
+  /// The file was not recognised; the user must map its columns.
+  NEEDS_MAPPING
+  COMMITTED
+  REVERTED
+  DISCARDED
+}
+
+model ImportBatch {
+  id          String       @id @default(cuid())
+  userId      String
+  accountId   String
+  /// Detected or chosen parser, e.g. "bca", "generic", "agent".
+  format      String
+  fileName    String?
+  fileHash    String?
+  /// Original file text, kept until commit so the user can re-map columns.
+  rawContent  String?
+  /// Column mapping used for "generic" CSV.
+  mapping     Json?
+  status      ImportStatus @default(STAGED)
+  rowCount    Int          @default(0)
+  duplicateCount Int       @default(0)
+  committedCount Int       @default(0)
+  createdAt   DateTime     @default(now())
+  committedAt DateTime?
+  createdBy   String?
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account      Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  rows         StagedRow[]
+  transactions Transaction[]
+
+  @@index([userId, createdAt])
+  @@index([accountId, fileHash])
+  @@map("import_batches")
+}
+
+model StagedRow {
+  id          String    @id @default(cuid())
+  batchId     String
+  /// Position in the file, for stable ordering.
+  line        Int
+  bookedOn    DateTime  @db.Date
+  amount      BigInt
+  description String
+  payee       String?
+  fingerprint String
+  /// True when the account already holds this transaction.
+  duplicate   Boolean   @default(false)
+  categoryId  String?
+  /// Rule that suggested categoryId, if any.
+  ruleId      String?
+  /// User or agent decided to leave this row out.
+  skip        Boolean   @default(false)
+
+  batch    ImportBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  category Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([batchId, line])
+  @@map("staged_rows")
+}
+
+/// "When a transaction looks like this, give it that category." First match by priority wins.
+model Rule {
+  id            String        @id @default(cuid())
+  userId        String
+  priority      Int           @default(100)
+  enabled       Boolean       @default(true)
+  /// Case-insensitive substring of the normalised description or payee.
+  contains      String
+  kind          CategoryKind?
+  accountId     String?
+  minAmount     BigInt?
+  maxAmount     BigInt?
+  categoryId    String
+  /// Optional payee to set when the rule matches.
+  setPayee      String?
+  createdAt     DateTime      @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account  Account? @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([userId, priority])
+  @@map("rules")
 }

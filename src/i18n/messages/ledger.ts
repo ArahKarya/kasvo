@@ -32,6 +32,9 @@ export const en = {
     category_nesting: "Categories nest one level deep only.",
     transfer_locked: "A transfer's amount and accounts cannot be edited. Delete it and record it again.",
     currency_mismatch: "Transfers between currencies are not supported yet.",
+    import_state: "This import can no longer be changed.",
+    too_large: "The file is too large. Export a shorter period.",
+    no_rows: "No transactions found with those columns.",
   },
   accountType: {
     BANK: "Bank",
@@ -141,6 +144,9 @@ export const id: typeof en = {
     category_nesting: "Kategori hanya bisa bertingkat satu level.",
     transfer_locked: "Nominal dan rekening transfer tidak bisa diubah. Hapus lalu catat ulang.",
     currency_mismatch: "Transfer antar mata uang belum didukung.",
+    import_state: "Impor ini sudah tidak bisa diubah.",
+    too_large: "File terlalu besar. Ekspor periode yang lebih pendek.",
+    no_rows: "Tidak ada transaksi yang terbaca dengan kolom itu.",
   },
   accountType: {
     BANK: "Bank",

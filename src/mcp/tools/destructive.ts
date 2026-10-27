@@ -4,6 +4,8 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { db } from "@/server/db";
 import { deleteTransactions } from "@/server/domain/transactions";
+import { revertImport } from "@/server/domain/import/service";
+import { getImport } from "@/server/domain/import/queries";
 import { consumePending, createPending } from "@/server/domain/pending";
 import { DomainError } from "@/server/domain/errors";
 import { formatMoney } from "@/server/domain/money";
@@ -11,6 +13,7 @@ import type { McpContext } from "../context";
 import { day, run } from "../result";
 
 const DELETE_TOOL = "kasvo_delete_transactions";
+const REVERT_TOOL = "kasvo_revert_import";
 
 /**
  * Destructive tools never act directly. They return a pendingId and a summary; nothing
@@ -44,6 +47,24 @@ export function registerDestructiveTools(server: McpServer, ctx: McpContext): vo
   );
 
   server.registerTool(
+    REVERT_TOOL,
+    {
+      title: "Revert an import (step 1 of 2)",
+      description: "Prepares removing every transaction a committed import created. Returns a pendingId and a summary; call kasvo_confirm only after the user agrees. The rows can be restored for 30 days.",
+      inputSchema: { importId: z.string() },
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    ({ importId }) =>
+      run(async () => {
+        const batch = await getImport(ctx.actor.userId, importId);
+        if (!batch) throw new DomainError("NOT_FOUND", "not_found", `Import ${importId} not found.`, "Call kasvo_list_imports.");
+        if (batch.status !== "COMMITTED") throw new DomainError("INVALID", "import_state", `Import is ${batch.status.toLowerCase()}, not committed.`);
+        const summary = `Revert import ${batch.fileName ?? batch.id} into ${batch.accountName}: remove ${batch.committedCount} transaction(s) committed on ${batch.committedAt?.toISOString().slice(0, 10)}.`;
+        return { ...(await createPending(ctx.actor, REVERT_TOOL, { importId }, summary)), next: "Show this summary to the user. If they agree, call kasvo_confirm with pendingId." };
+      }),
+  );
+
+  server.registerTool(
     "kasvo_confirm",
     {
       title: "Confirm a pending action (step 2 of 2)",
@@ -57,6 +78,10 @@ export function registerDestructiveTools(server: McpServer, ctx: McpContext): vo
         if (tool === DELETE_TOOL) {
           const { ids } = z.object({ ids: z.array(z.string()) }).parse(payload);
           return { done: tool, deleted: await deleteTransactions(ctx.actor, ids), ids, undo: "Call kasvo_restore_transactions with these ids to undo." };
+        }
+        if (tool === REVERT_TOOL) {
+          const { importId } = z.object({ importId: z.string() }).parse(payload);
+          return { done: tool, deleted: await revertImport(ctx.actor, importId), importId };
         }
         throw new DomainError("INVALID", "not_found", `Unknown pending tool ${tool}.`);
       }),

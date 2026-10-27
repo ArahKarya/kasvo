@@ -6,9 +6,10 @@
 import * as core from "./messages/core";
 import * as ledger from "./messages/ledger";
 import * as settings from "./messages/settings";
+import * as imports from "./messages/imports";
 
-const en = { ...core.en, ...ledger.en, ...settings.en };
-const id: typeof en = { ...core.id, ...ledger.id, ...settings.id };
+const en = { ...core.en, ...ledger.en, ...settings.en, ...imports.en };
+const id: typeof en = { ...core.id, ...ledger.id, ...settings.id, ...imports.id };
 
 export type Dictionary = typeof en;
 

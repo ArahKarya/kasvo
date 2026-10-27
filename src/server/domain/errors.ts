@@ -8,7 +8,10 @@ export type DomainErrorReason =
   | "category_kind"
   | "category_nesting"
   | "transfer_locked"
-  | "currency_mismatch";
+  | "currency_mismatch"
+  | "import_state"
+  | "too_large"
+  | "no_rows";
 
 /** An error the caller can show or act on. `hint` tells an agent what to try next. */
 export class DomainError extends Error {

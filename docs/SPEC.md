@@ -99,7 +99,8 @@ Names use the `kasvo_` prefix so they read clearly next to other servers' tools.
 | `kasvo_cashflow` | Income, expense, net per day/week/month |
 | `kasvo_budget_status` | Budget vs actual for a month, projected end-of-month (M4) |
 | `kasvo_find_anomalies` | Unusually large transactions, new payees, duplicate charges |
-| `kasvo_list_rules` | Categorization rules (M3) |
+| `kasvo_list_rules` | Categorization rules |
+| `kasvo_list_imports`, `kasvo_get_import` | Import history; review a staged batch row by row |
 
 **write**
 | Tool | Purpose |
@@ -111,15 +112,16 @@ Names use the `kasvo_` prefix so they read clearly next to other servers' tools.
 | `kasvo_categorize` | Set category for a list of transaction ids |
 | `kasvo_create_category` / `kasvo_create_account` | Setup |
 | `kasvo_set_budget` | Budget for a category and month (M4) |
-| `kasvo_create_rule` | New categorization rule, with a dry-run count of matches (M3) |
-| `kasvo_stage_import` | Stage rows (from a supported file, or rows the agent parsed itself) (M3) |
-| `kasvo_commit_import` | Commit a staged batch, skipping duplicates (M3) |
+| `kasvo_create_rule` | New categorization rule, with a dry-run count of matches |
+| `kasvo_stage_import` | Stage rows (from a supported file, or rows the agent parsed itself) |
+| `kasvo_commit_import` | Commit a staged batch, skipping duplicates; per-row category/skip changes |
+| `kasvo_discard_import`, `kasvo_apply_rules` | Drop an uncommitted batch; run rules over uncategorized rows |
 | `kasvo_restore_transactions` | Undo a delete within 30 days |
 
 **destructive** (two-step)
 | Tool | Purpose |
 |---|---|
-| `kasvo_delete_transactions` (M2), `kasvo_revert_import` (M3) | Return a `PendingAction` id and a human-readable summary; nothing changes yet |
+| `kasvo_delete_transactions`, `kasvo_revert_import` | Return a `PendingAction` id and a human-readable summary; nothing changes yet |
 | `kasvo_confirm` | Executes a pending action by id |
 
 Conventions:
@@ -150,7 +152,12 @@ apply rules → **staged preview** → user or agent commits.
 | E-wallet exports (GoPay, OVO, DANA) | phase 3 |
 | OFX/QFX | phase 3 |
 
-Parsers are pure functions `(file: Buffer) => ParsedRow[]` with fixture-based tests.
+There is one CSV engine, not one parser per bank: it finds the header row by column-name aliases
+(tanggal/date, keterangan/uraian/description, debit/debet, kredit/credit, jumlah/nominal, D/K),
+reads both `1.000.000,00` and `1,000,000.00`, `DB`/`CR` suffixes, and dates with or without a
+year (KlikBCA takes the year from its `Periode` line). The bank name is only a label guessed from
+the header shape. Unrecognised files go to `NEEDS_MAPPING` and the user maps columns by hand;
+agents can instead stage rows they extracted themselves (e.g. from a PDF). Fixtures are synthetic.
 Real statements are never committed; fixtures are synthetic.
 
 ## 6. UI (v1 screens)
