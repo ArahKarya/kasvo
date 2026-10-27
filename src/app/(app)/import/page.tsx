@@ -43,7 +43,10 @@ export default async function ImportPage({ searchParams }: PageProps<"/import">)
                 </Select>
               </Field>
               <Field label={im.file}>
-                <Input name="file" type="file" accept=".csv,.txt,text/csv" required className="py-1.5" />
+                <Input name="file" type="file" accept=".csv,.txt,.pdf,text/csv,application/pdf" required className="py-1.5" />
+              </Field>
+              <Field label={`${im.password} (${t.common.optional})`} hint={im.passwordHint} className="sm:col-span-2">
+                <Input name="password" type="password" autoComplete="off" maxLength={200} className="sm:max-w-xs" />
               </Field>
             </div>
           </ActionForm>

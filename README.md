@@ -6,7 +6,7 @@ agent can record, categorize, and analyze your money.
 > Status: early development. See [docs/SPEC.md](docs/SPEC.md).
 
 - Accounts for banks, e-wallets, cash, and credit cards (IDR first)
-- Import statements from BCA, Mandiri, BRI, BNI
+- Import statements from BCA, Mandiri, BRI, BNI and e-wallets (GoPay, OVO, DANA): CSV or PDF, including password-protected e-statements
 - Budgets, reports, savings goals, and debts/instalments (cicilan) with due dates
 - MCP tools for reading, writing, and safe two-step destructive actions
 - Bilingual UI: Bahasa Indonesia and English

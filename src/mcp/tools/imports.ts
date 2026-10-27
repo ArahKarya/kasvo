@@ -2,7 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { commitImport, discardImport, stageFile, stageRows } from "@/server/domain/import/service";
+import { commitImport, discardImport, stageFile, stagePdf, stageRows } from "@/server/domain/import/service";
 import { getImport, listImports } from "@/server/domain/import/queries";
 import { applyRules, createRule, listRules } from "@/server/domain/rules";
 import { DomainError } from "@/server/domain/errors";
@@ -95,10 +95,12 @@ export function registerImportTools(server: McpServer, ctx: McpContext): void {
     {
       title: "Stage a statement import",
       description:
-        "Stages transactions for one account without touching the ledger. Pass either `csv` (the raw text of a bank CSV export: BCA, Mandiri, BRI, BNI, or a CSV with recognisable headers) or `rows` you extracted yourself, e.g. from a PDF statement (signed amounts: negative is money out). Rules suggest categories and rows already in the account are flagged as duplicates. Review with kasvo_get_import, then kasvo_commit_import.",
+        "Stages transactions for one account without touching the ledger. Pass exactly one of: `csv` (raw text of a bank or e-wallet CSV export: BCA, Mandiri, BRI, BNI, GoPay, OVO, DANA, or any CSV with recognisable headers); `pdfBase64` (a text-based statement PDF, up to 3 MB; add `password` for a locked e-statement, which is used once and never stored); or `rows` you extracted yourself, e.g. from a scanned PDF (signed amounts: negative is money out). Rules suggest categories and rows already in the account are flagged as duplicates. Review with kasvo_get_import, then kasvo_commit_import.",
       inputSchema: {
         account: z.string().describe("Account id or name"),
         csv: z.string().optional(),
+        pdfBase64: z.string().max(4_500_000).optional().describe("Base64 of a statement PDF"),
+        password: z.string().max(200).optional().describe("PDF password, only for a locked PDF"),
         fileName: z.string().optional(),
         rows: z
           .array(z.object({ date: z.string().describe("YYYY-MM-DD"), amount: z.union([z.number(), z.string()]), description: z.string(), payee: z.string().optional() }))
@@ -109,7 +111,13 @@ export function registerImportTools(server: McpServer, ctx: McpContext): void {
     (a) =>
       run(async () => {
         const accountId = await resolveAccount(ctx, a.account);
-        if (a.csv && a.rows) throw new DomainError("INVALID", "no_rows", "Pass csv or rows, not both.");
+        if ([a.csv, a.pdfBase64, a.rows].filter(Boolean).length > 1) throw new DomainError("INVALID", "no_rows", "Pass only one of csv, pdfBase64, or rows.");
+        if (a.pdfBase64) {
+          const bytes = new Uint8Array(Buffer.from(a.pdfBase64, "base64"));
+          const r = await stagePdf(ctx.actor, { accountId, fileName: a.fileName, bytes, password: a.password });
+          const check = r.unsigned ? ` ${r.unsigned} row(s) had no debit/credit marker and were read as money out: check them with the user.` : "";
+          return { ...r, next: `Review with kasvo_get_import, then call kasvo_commit_import.${check}` };
+        }
         if (a.csv) {
           const r = await stageFile(ctx.actor, { accountId, fileName: a.fileName, text: a.csv });
           if (r.status === "NEEDS_MAPPING") {
@@ -118,7 +126,7 @@ export function registerImportTools(server: McpServer, ctx: McpContext): void {
           return { ...r, next: "Review with kasvo_get_import, then call kasvo_commit_import." };
         }
         if (a.rows?.length) return { ...(await stageRows(ctx.actor, { accountId, label: a.fileName, rows: a.rows })), next: "Review with kasvo_get_import, then call kasvo_commit_import." };
-        throw new DomainError("INVALID", "no_rows", "Nothing to stage.", "Pass `csv` or a non-empty `rows` array.");
+        throw new DomainError("INVALID", "no_rows", "Nothing to stage.", "Pass `csv`, `pdfBase64`, or a non-empty `rows` array.");
       }),
   );
 

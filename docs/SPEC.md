@@ -153,8 +153,8 @@ apply rules → **staged preview** → user or agent commits.
 | BCA (KlikBCA / myBCA CSV) | yes |
 | Mandiri (Livin' CSV) | yes |
 | BRI, BNI | yes, CSV |
-| Bank PDF statements | phase 3 (text-based PDFs only) |
-| E-wallet exports (GoPay, OVO, DANA) | phase 3 |
+| Bank PDF statements | yes (M5b): text-based PDFs, password-protected e-statements supported |
+| E-wallet exports (GoPay, OVO, DANA, ShopeePay) | yes (M5b): CSV and PDF histories; failed transactions skipped |
 | OFX/QFX | phase 3 |
 
 There is one CSV engine, not one parser per bank: it finds the header row by column-name aliases
@@ -164,6 +164,16 @@ year (KlikBCA takes the year from its `Periode` line). The bank name is only a l
 the header shape. Unrecognised files go to `NEEDS_MAPPING` and the user maps columns by hand;
 agents can instead stage rows they extracted themselves (e.g. from a PDF). Fixtures are synthetic.
 Real statements are never committed; fixtures are synthetic.
+
+PDFs (M5b) are read with unpdf (pdf.js). Text on one baseline becomes a line of positioned cells; the
+header row (same aliases as CSV, plus `saldo` and `status`) defines the columns. Text cells join the
+nearest column starting at or before them, amounts the nearest numeric column. Lines without a date
+continue the previous description (up to 3). Direction comes from a DB/CR suffix or sign, a D/K or
+transaction-type column ("Uang Masuk", "Pembayaran"), debit/credit columns, or the change in the
+printed balance; rows with none of these are read as money out and flagged for review. A PDF password
+is passed to the reader for that one call and is never stored, logged, or audited. Scanned PDFs have no
+text: the agent reads them and stages `rows`. Test PDFs are generated in memory by
+`tests/fixtures/pdf-builder.ts` (including AES-128 encryption), so no binary statement is committed.
 
 ## 5b. Goals and debts (M5a)
 
@@ -198,5 +208,5 @@ audit log can be filtered by actor.
 | M3 | Import: generic CSV + BCA/Mandiri/BRI/BNI, rules, dedup | A real statement imports with no duplicates on re-import |
 | M4 | Budgets, reports, dashboard | Monthly review prompt produces a useful answer |
 | M5a | Savings goals, debts/receivables with instalment schedules | Done: schedule derived from terms, payments link to the ledger |
-| M5b | PDF (text-based, password supported) + e-wallet import | Real anonymised samples parse |
+| M5b | PDF (text-based, password supported) + e-wallet import | Done on synthetic layouts; still to verify against real anonymised samples |
 | M6 | Mobile app (Expo) on the same API | — |

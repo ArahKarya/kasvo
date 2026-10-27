@@ -3,10 +3,13 @@
 export const en = {
   imports: {
     title: "Import",
-    intro: "Upload a CSV statement. Nothing is saved until you review it and press Commit.",
-    supported: "Recognised automatically: BCA (KlikBCA/myBCA), Mandiri, BRI, BNI, and CSVs with date, description, and amount headers. Other files can be mapped by hand. For PDF statements, ask your agent to read them and use kasvo_stage_import.",
+    intro: "Upload a bank or e-wallet statement as CSV or PDF. Nothing is saved until you review it and press Commit.",
+    supported: "Recognised automatically: BCA (KlikBCA/myBCA), Mandiri, BRI, BNI, e-wallet histories (GoPay, OVO, DANA, ShopeePay), and any CSV or text-based PDF with date, description, and amount columns. Other CSVs can be mapped by hand. Scanned PDFs have no text: ask your agent to read them and use kasvo_stage_import.",
     account: "Into account",
-    file: "CSV file",
+    file: "CSV or PDF file",
+    password: "PDF password",
+    passwordHint: "Only for locked e-statements (often your date of birth). Used once to open the file, never saved.",
+    unsigned: "{n} rows had no debit/credit marker and were read as money out. Check them before committing.",
     upload: "Upload and preview",
     history: "Previous imports",
     noHistory: "No imports yet.",
@@ -75,10 +78,13 @@ export const en = {
 export const id: typeof en = {
   imports: {
     title: "Impor",
-    intro: "Unggah mutasi rekening dalam format CSV. Belum ada yang tersimpan sampai Anda memeriksa dan menekan Simpan.",
-    supported: "Dikenali otomatis: BCA (KlikBCA/myBCA), Mandiri, BRI, BNI, dan CSV dengan header tanggal, keterangan, dan nominal. File lain bisa dipetakan manual. Untuk mutasi PDF, minta agent Anda membacanya lalu memakai kasvo_stage_import.",
+    intro: "Unggah mutasi rekening atau riwayat e-wallet dalam format CSV atau PDF. Belum ada yang tersimpan sampai Anda memeriksa dan menekan Simpan.",
+    supported: "Dikenali otomatis: BCA (KlikBCA/myBCA), Mandiri, BRI, BNI, riwayat e-wallet (GoPay, OVO, DANA, ShopeePay), serta CSV atau PDF berbasis teks dengan kolom tanggal, keterangan, dan nominal. CSV lain bisa dipetakan manual. PDF hasil scan tidak berisi teks: minta agent Anda membacanya lalu memakai kasvo_stage_import.",
     account: "Ke rekening",
-    file: "File CSV",
+    file: "File CSV atau PDF",
+    password: "Kata sandi PDF",
+    passwordHint: "Hanya untuk e-statement yang terkunci (biasanya tanggal lahir). Dipakai sekali untuk membuka file, tidak disimpan.",
+    unsigned: "{n} baris tidak punya penanda debit/kredit dan dibaca sebagai uang keluar. Periksa sebelum menyimpan.",
     upload: "Unggah dan pratinjau",
     history: "Impor sebelumnya",
     noHistory: "Belum ada impor.",

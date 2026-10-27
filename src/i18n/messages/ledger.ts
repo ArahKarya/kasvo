@@ -40,6 +40,11 @@ export const en = {
     debt_settled: "This debt is already paid off.",
     already_linked: "That transaction is already linked to a payment.",
     payment_direction: "Pick money going out for a debt you owe, or money coming in for one owed to you.",
+    pdf_password: "This PDF is locked. Enter its password (for bank e-statements this is often your date of birth).",
+    pdf_password_wrong: "The PDF password is wrong.",
+    pdf_unreadable: "This file can't be read as a PDF.",
+    pdf_no_text: "This PDF has no text (it looks like a scan). Download the e-statement from internet banking, or ask an agent to read it.",
+    pdf_unrecognised: "No transaction table was found in this PDF. Try the CSV export, or ask an agent to read it.",
   },
   accountType: {
     BANK: "Bank",
@@ -157,6 +162,11 @@ export const id: typeof en = {
     debt_settled: "Utang ini sudah lunas.",
     already_linked: "Transaksi itu sudah ditautkan ke pembayaran lain.",
     payment_direction: "Pilih uang keluar untuk utang Anda, atau uang masuk untuk piutang.",
+    pdf_password: "PDF ini terkunci. Masukkan kata sandinya (untuk e-statement bank biasanya tanggal lahir Anda).",
+    pdf_password_wrong: "Kata sandi PDF salah.",
+    pdf_unreadable: "File ini tidak bisa dibaca sebagai PDF.",
+    pdf_no_text: "PDF ini tidak berisi teks (sepertinya hasil scan). Unduh e-statement dari internet banking, atau minta agent membacanya.",
+    pdf_unrecognised: "Tabel transaksi tidak ditemukan di PDF ini. Coba ekspor CSV, atau minta agent membacanya.",
   },
   accountType: {
     BANK: "Bank",

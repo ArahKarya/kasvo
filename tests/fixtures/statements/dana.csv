@@ -1,0 +1,6 @@
+Riwayat Transaksi DANA
+Waktu Transaksi,Jenis Transaksi,Detail,Nominal,Status
+2026-10-02 12:30:11,Pembayaran,Alfamart Contoh,Rp35.500,Berhasil
+2026-10-03 09:00:00,Uang Masuk,Kiriman dari Sari,Rp150.000,Berhasil
+2026-10-04 21:15:40,Pembayaran,Pulsa 50rb,Rp51.000,Gagal
+2026-10-05 10:05:00,Top Up,Isi saldo dari BRI,Rp100.000,Berhasil

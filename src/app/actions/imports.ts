@@ -6,7 +6,7 @@ import { ZodError } from "zod";
 import { requireUser } from "@/server/auth";
 import { userActor, type Actor } from "@/server/domain/actor";
 import { DomainError } from "@/server/domain/errors";
-import { commitImport, discardImport, remapImport, revertImport, stageFile } from "@/server/domain/import/service";
+import { commitImport, discardImport, remapImport, revertImport, stageFile, stagePdf } from "@/server/domain/import/service";
 import { applyRules, createRule, deleteRule, setRuleEnabled } from "@/server/domain/rules";
 import { getDictionary } from "@/i18n/server";
 import { fmt } from "@/i18n/dictionaries";
@@ -38,13 +38,26 @@ const optionalIndex = (form: FormData, key: string): number | undefined => (str(
 const PATHS = ["/import", "/transactions", "/dashboard", "/accounts"];
 const refresh = () => PATHS.forEach((p) => revalidatePath(p));
 
+/** PDFs are recognised by their signature, not the file name. */
+const isPdf = (bytes: Uint8Array): boolean => bytes.length > 4 && String.fromCharCode(...bytes.subarray(0, 5)) === "%PDF-";
+
 export async function uploadAction(_prev: FormState, form: FormData): Promise<FormState> {
   const file = form.get("file");
   if (!(file instanceof File) || file.size === 0) return { error: (await getDictionary()).t.errors.no_rows };
-  const text = await file.text();
-  const r = await attempt((actor) => stageFile(actor, { accountId: str(form, "accountId"), fileName: file.name, text }));
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const accountId = str(form, "accountId");
+  // The password goes straight to the PDF reader and is not kept anywhere.
+  const password = form.get("password");
+  const r = await attempt((actor) =>
+    isPdf(bytes)
+      ? stagePdf(actor, { accountId, fileName: file.name, bytes, password: typeof password === "string" && password !== "" ? password : undefined })
+      : stageFile(actor, { accountId, fileName: file.name, text: new TextDecoder().decode(bytes) }),
+  );
   if (r.error || !r.value) return { error: r.error };
-  redirect(`/import/${r.value.batchId}${r.value.alreadyImportedAs ? "?again=1" : ""}`);
+  const query = new URLSearchParams();
+  if (r.value.alreadyImportedAs) query.set("again", "1");
+  if (r.value.unsigned) query.set("unsigned", String(r.value.unsigned));
+  redirect(`/import/${r.value.batchId}${query.size ? `?${query}` : ""}`);
 }
 
 export async function remapAction(batchId: string, _prev: FormState, form: FormData): Promise<FormState> {

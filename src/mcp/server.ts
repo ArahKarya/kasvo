@@ -13,14 +13,14 @@ import { registerPlanTools } from "./tools/plans";
 import { registerReadTools } from "./tools/read";
 import { registerWriteTools } from "./tools/write";
 
-export const SERVER_INFO = { name: "kasvo", version: "0.5.0" } as const;
+export const SERVER_INFO = { name: "kasvo", version: "0.6.0" } as const;
 
 const INSTRUCTIONS = `Kasvo holds the user's personal finances (Indonesia first; amounts are whole rupiah unless an account says otherwise).
 - Start with kasvo_overview. Accounts and categories can be referenced by name or id.
 - Negative amounts are money out. Transfers between the user's own accounts are never income or spending.
 - Amount inputs accept Indonesian notation: "25rb", "1,5jt", "Rp1.250.000".
 - Destructive tools only prepare a change: show the returned summary to the user and call kasvo_confirm only after they agree.
-- To import a bank statement: kasvo_stage_import (CSV text, or rows you read from a PDF), review with kasvo_get_import, then kasvo_commit_import.
+- To import a bank or e-wallet statement: kasvo_stage_import (CSV text, a text-based PDF as base64 with its password if locked, or rows you read yourself from a scanned PDF), review with kasvo_get_import, then kasvo_commit_import.
 - Savings goals and debts: kasvo_list_goals, kasvo_list_debts. When a debt payment already appears as a transaction (e.g. imported), link it with kasvo_pay_debt's transactionId instead of booking it again.
 - Every change is recorded in the user's audit log under this client's name.`;
 

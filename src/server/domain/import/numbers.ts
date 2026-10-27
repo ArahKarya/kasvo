@@ -35,10 +35,18 @@ export function parseStatementAmount(input: string): bigint | null {
   return negative ? -value : value;
 }
 
-/** Debit/credit marker in its own column: "D", "DB", "Debit", "K", "CR", "Kredit". */
+/**
+ * Direction marker in its own column: bank codes ("D", "DB", "Debit", "K", "CR", "Kredit") or
+ * e-wallet transaction types ("Uang Masuk", "Top Up", "Pembayaran", "Kirim Uang").
+ */
 export function directionOf(marker: string): -1 | 1 | null {
-  const m = marker.trim().toUpperCase();
+  const m = marker.trim().toUpperCase().replace(/\s+/g, " ");
   if (/^(D|DB|DR|DEBIT|DEBET)$/.test(m)) return -1;
   if (/^(K|C|CR|KREDIT|CREDIT)$/.test(m)) return 1;
+  if (/^(UANG MASUK|MASUK|TERIMA|TERIMA UANG|DITERIMA|TOP ?UP|ISI SALDO|CASHBACK|REFUND|PENGEMBALIAN DANA|INCOMING|IN)$/.test(m)) return 1;
+  if (/^(UANG KELUAR|KELUAR|BAYAR|PEMBAYARAN|KIRIM|KIRIM UANG|TRANSFER|TARIK|TARIK TUNAI|PEMBELIAN|BELANJA|OUTGOING|OUT|PAYMENT)$/.test(m)) return -1;
   return null;
 }
+
+/** Whether printed amount text says its own direction: a sign, brackets, or a DB/CR suffix. */
+export const hasOwnSign = (text: string): boolean => /^\s*[-+(]|(DB|DR|CR|\bD|\bK|\bC)\s*$/i.test(text.trim().replace(/^'?RP\.?\s*/i, ""));

@@ -138,7 +138,9 @@ export default async function ImportBatchPage({ params, searchParams }: PageProp
   const user = await requireUser();
   const { t, locale } = await getDictionary();
   const { id } = await params;
-  const again = (await searchParams).again === "1";
+  const query = await searchParams;
+  const again = query.again === "1";
+  const unsigned = Number(typeof query.unsigned === "string" ? query.unsigned : 0) || 0;
   const batch = await getImport(user.id, id);
   if (!batch) notFound();
   const im = t.imports;
@@ -156,6 +158,7 @@ export default async function ImportBatchPage({ params, searchParams }: PageProp
       </p>
 
       {again && batch.status === "STAGED" && <p className="rounded-sm border border-accent/40 bg-accent/5 px-3 py-2 text-sm">{im.alreadyImported}</p>}
+      {unsigned > 0 && batch.status === "STAGED" && <p className="rounded-sm border border-accent/40 bg-accent/5 px-3 py-2 text-sm">{fmt(im.unsigned, { n: unsigned })}</p>}
 
       {batch.status === "NEEDS_MAPPING" && preview && <MappingForm batchId={batch.id} preview={preview} t={t} />}
 

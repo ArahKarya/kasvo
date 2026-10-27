@@ -16,7 +16,12 @@ export type DomainErrorReason =
   | "goal_linked"
   | "debt_settled"
   | "already_linked"
-  | "payment_direction";
+  | "payment_direction"
+  | "pdf_password"
+  | "pdf_password_wrong"
+  | "pdf_unreadable"
+  | "pdf_no_text"
+  | "pdf_unrecognised";
 
 /** An error the caller can show or act on. `hint` tells an agent what to try next. */
 export class DomainError extends Error {

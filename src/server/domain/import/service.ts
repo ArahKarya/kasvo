@@ -12,10 +12,13 @@ import { matchRule } from "../rule-match";
 import { activeRules } from "../rules";
 import { amountSchema, daySchema, idSchema } from "../schemas";
 import { mappingSchema, parseCsv, type ColumnMapping, type ParsedRow } from "./csv";
+import { parsePdfStatement } from "./pdf-statement";
+import { extractPdfLines, linesToText, PdfReadError, type PdfFailure } from "./pdf-text";
 
 type Tx = Prisma.TransactionClient;
 
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
+const MAX_PDF_BYTES = 3 * 1024 * 1024;
 const MAX_ROWS = 5000;
 
 export interface StageResult {
@@ -29,6 +32,8 @@ export interface StageResult {
   alreadyImportedAs?: string;
   /** First lines of an unrecognised file, for mapping its columns. */
   preview?: string[][];
+  /** PDF rows whose direction was not printed and was assumed to be money out. */
+  unsigned?: number;
 }
 
 async function usableAccount(userId: string, accountId: string) {
@@ -129,11 +134,69 @@ export async function stageFile(actor: Actor, input: z.input<typeof stageFileSch
   });
 }
 
+export const stagePdfSchema = z.object({
+  accountId: idSchema,
+  fileName: z.string().max(200).optional(),
+  bytes: z.instanceof(Uint8Array),
+  /** Opens a protected e-statement for this call only; never stored, logged, or audited. */
+  password: z.string().max(200).optional(),
+});
+
+const PDF_ERRORS: Record<PdfFailure, () => DomainError> = {
+  password_needed: () => new DomainError("INVALID", "pdf_password", "This PDF is password-protected.", "Ask the user for the PDF password (often their date of birth) and pass it as `password`."),
+  password_wrong: () => new DomainError("INVALID", "pdf_password_wrong", "The PDF password is wrong."),
+  invalid: () => new DomainError("INVALID", "pdf_unreadable", "This file is not a readable PDF."),
+  no_text: () => new DomainError("INVALID", "pdf_no_text", "This PDF has no text; it is probably a scan.", "Read the rows yourself and stage them with `rows`."),
+};
+
+/** Reads a text-based statement PDF into a staged batch. */
+export async function stagePdf(actor: Actor, input: z.input<typeof stagePdfSchema>): Promise<StageResult> {
+  const data = stagePdfSchema.parse(input);
+  if (data.bytes.byteLength > MAX_PDF_BYTES) throw new DomainError("INVALID", "too_large", "PDF is larger than 3 MB.", "Download a shorter period.");
+  await usableAccount(actor.userId, data.accountId);
+
+  let lines;
+  try {
+    lines = await extractPdfLines(data.bytes, data.password);
+  } catch (error: unknown) {
+    if (error instanceof PdfReadError) throw PDF_ERRORS[error.failure]();
+    throw error;
+  }
+  const parsed = parsePdfStatement(lines);
+  if (!parsed.ok) {
+    throw new DomainError("INVALID", "pdf_unrecognised", "No transaction table was recognised in this PDF.", "Read the rows yourself and stage them with `rows`.");
+  }
+
+  const fileHash = createHash("sha256").update(data.bytes).digest("hex");
+  const previous = await db.importBatch.findFirst({
+    where: { userId: actor.userId, accountId: data.accountId, fileHash, status: "COMMITTED" },
+    select: { id: true },
+  });
+  return db.$transaction(async (tx) => {
+    const batch = await tx.importBatch.create({
+      data: {
+        userId: actor.userId,
+        accountId: data.accountId,
+        format: parsed.format,
+        fileName: data.fileName,
+        fileHash,
+        rawContent: linesToText(lines),
+        status: "STAGED",
+        createdBy: actor.clientName,
+      },
+    });
+    const counts = await fillBatch(tx, actor.userId, batch.id, data.accountId, parsed.rows);
+    await audit(tx, actor, { action: "import.stage", entity: "ImportBatch", entityId: batch.id, after: { format: parsed.format, ...counts } });
+    return { batchId: batch.id, status: "STAGED" as const, format: parsed.format, skippedLines: parsed.skipped, unsigned: parsed.unsigned, alreadyImportedAs: previous?.id, ...counts };
+  });
+}
+
 /** Re-parses a stored file with a column mapping chosen by the user. */
 export async function remapImport(actor: Actor, batchId: string, mapping: z.input<typeof mappingSchema>): Promise<StageResult> {
   const batch = await ownedBatch(actor.userId, batchId);
   if (batch.status !== "STAGED" && batch.status !== "NEEDS_MAPPING") throw new DomainError("INVALID", "import_state", `Import is ${batch.status.toLowerCase()}.`);
   if (!batch.rawContent) throw new DomainError("INVALID", "import_state", "The original file is no longer stored.", "Upload it again.");
+  if (batch.format.endsWith("pdf")) throw new DomainError("INVALID", "import_state", "PDF imports cannot be remapped.", "Discard it and upload the PDF again.");
   const m = mappingSchema.parse(mapping);
   const parsed = parseCsv(batch.rawContent, m);
   if (!parsed.ok) throw new DomainError("INVALID", "no_rows", "No transactions found with that mapping.", "Check which columns hold the date, description, and amount.");
