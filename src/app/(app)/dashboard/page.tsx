@@ -7,6 +7,9 @@ import { formatMoney } from "@/server/domain/money";
 import { getDictionary } from "@/i18n/server";
 import { fmt } from "@/i18n/dictionaries";
 import { db } from "@/server/db";
+import { findTransactions } from "@/server/domain/transaction-queries";
+import { TransactionList } from "@/components/transaction-list";
+import { intlLocale } from "@/i18n/dictionaries";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -30,8 +33,8 @@ export default async function DashboardPage() {
   const user = await requireUser();
   const { t, locale } = await getDictionary();
   const { timezone } = await db.user.findUniqueOrThrow({ where: { id: user.id }, select: { timezone: true } });
-  const o = await getOverview(user.id, timezone);
-  const money = (v: bigint) => formatMoney(v, user.baseCurrency, locale === "id" ? "id-ID" : "en-ID");
+  const [o, recent] = await Promise.all([getOverview(user.id, timezone), findTransactions(user.id, { pageSize: 8 })]);
+  const money = (v: bigint) => formatMoney(v, user.baseCurrency, intlLocale(locale));
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -44,9 +47,21 @@ export default async function DashboardPage() {
       </section>
 
       <p className="text-sm text-muted">
-        {t.dashboard.accounts}: <span className="num">{o.accountCount}</span> · {t.dashboard.categories}:{" "}
+        {t.dashboard.accounts}: <span className="num">{o.accountCount}</span> · {t.nav.categories}:{" "}
         <span className="num">{o.categoryCount}</span>
       </p>
+
+      {recent.items.length > 0 && (
+        <section className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold">{t.dashboard.recent}</h2>
+            <Link href="/transactions" className="text-sm text-accent hover:underline">
+              {t.dashboard.seeAll}
+            </Link>
+          </div>
+          <TransactionList items={recent.items} t={t} locale={locale} />
+        </section>
+      )}
 
       {o.accountCount === 0 && (
         <section className="flex flex-col items-start gap-3 rounded-sm border border-dashed border-border bg-surface p-6">

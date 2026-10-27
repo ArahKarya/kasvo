@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeftRight, BarChart3, Download, LayoutDashboard, PiggyBank, Settings, Wallet } from "lucide-react";
+import { ArrowLeftRight, BarChart3, Download, LayoutDashboard, PiggyBank, Settings, Tags, Wallet } from "lucide-react";
 
 const ITEMS = [
   { href: "/dashboard", key: "dashboard", icon: LayoutDashboard },
   { href: "/transactions", key: "transactions", icon: ArrowLeftRight },
   { href: "/accounts", key: "accounts", icon: Wallet },
+  { href: "/categories", key: "categories", icon: Tags },
   { href: "/budgets", key: "budgets", icon: PiggyBank },
   { href: "/import", key: "import", icon: Download },
   { href: "/reports", key: "reports", icon: BarChart3 },

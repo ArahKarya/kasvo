@@ -27,6 +27,7 @@ model User {
   accounts     Account[]
   categories   Category[]
   transactions Transaction[]
+  auditLogs    AuditLog[]
 
   @@map("users")
 }
@@ -127,4 +128,30 @@ model Transaction {
   @@index([accountId, fingerprint])
   @@index([transferId])
   @@map("transactions")
+}
+
+enum ActorKind {
+  USER
+  AGENT
+}
+
+/// Every write through the domain layer leaves one row here, from the UI or an agent.
+model AuditLog {
+  id         String    @id @default(cuid())
+  userId     String
+  actorKind  ActorKind
+  /// MCP client name for agents, null for the UI.
+  clientName String?
+  action     String
+  entity     String
+  entityId   String
+  before     Json?
+  after      Json?
+  at         DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, at])
+  @@index([entity, entityId])
+  @@map("audit_logs")
 }

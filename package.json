@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "test": "vitest run",
     "typecheck": "next typegen && tsc --noEmit",
-    "db:migrate": "prisma migrate dev"
+    "db:migrate": "prisma migrate dev",
+    "test:integration": "vitest run --config vitest.integration.config.mts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.1",

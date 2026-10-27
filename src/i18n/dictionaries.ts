@@ -1,95 +1,15 @@
 /**
- * UI strings. `id` is typed against `en`, so a missing translation fails the type check.
- * Add a language by adding another object of type `Dictionary`.
+ * UI strings, one module per area under ./messages. Each module exports `en` and an `id`
+ * typed against it, so a missing translation fails the type check in that file.
  */
 
-const en = {
-  app: { tagline: "Personal finance your AI agent can work with" },
-  auth: {
-    login: "Sign in",
-    register: "Create account",
-    logout: "Sign out",
-    name: "Name",
-    email: "Email",
-    password: "Password",
-    passwordHint: "At least 8 characters",
-    noAccount: "No account yet?",
-    haveAccount: "Already have an account?",
-    invalid: "Wrong email or password.",
-    taken: "That email is already registered.",
-    closed: "Registration is closed on this instance.",
-    checkFields: "Check the fields and try again.",
-  },
-  nav: {
-    dashboard: "Dashboard",
-    transactions: "Transactions",
-    accounts: "Accounts",
-    budgets: "Budgets",
-    import: "Import",
-    reports: "Reports",
-    settings: "Settings",
-  },
-  dashboard: {
-    greeting: "Hello, {name}",
-    netWorth: "Net worth",
-    incomeThisMonth: "Income this month",
-    expenseThisMonth: "Spending this month",
-    accounts: "Accounts",
-    categories: "Categories",
-    emptyTitle: "No accounts yet",
-    emptyBody: "Add your bank, e-wallet, or cash account to start recording. Your agent will be able to do this too once the MCP server lands.",
-  },
-  soon: {
-    title: "Coming in {milestone}",
-    body: "This screen is part of the roadmap in docs/SPEC.md.",
-  },
-  locale: { label: "Language", id: "Bahasa Indonesia", en: "English" },
-};
+import * as core from "./messages/core";
+import * as ledger from "./messages/ledger";
+
+const en = { ...core.en, ...ledger.en };
+const id: typeof en = { ...core.id, ...ledger.id };
 
 export type Dictionary = typeof en;
-
-const id: Dictionary = {
-  app: { tagline: "Keuangan pribadi yang bisa dikelola bersama agent AI" },
-  auth: {
-    login: "Masuk",
-    register: "Buat akun",
-    logout: "Keluar",
-    name: "Nama",
-    email: "Email",
-    password: "Kata sandi",
-    passwordHint: "Minimal 8 karakter",
-    noAccount: "Belum punya akun?",
-    haveAccount: "Sudah punya akun?",
-    invalid: "Email atau kata sandi salah.",
-    taken: "Email itu sudah terdaftar.",
-    closed: "Pendaftaran ditutup di instance ini.",
-    checkFields: "Periksa isian lalu coba lagi.",
-  },
-  nav: {
-    dashboard: "Dasbor",
-    transactions: "Transaksi",
-    accounts: "Rekening",
-    budgets: "Anggaran",
-    import: "Impor",
-    reports: "Laporan",
-    settings: "Pengaturan",
-  },
-  dashboard: {
-    greeting: "Halo, {name}",
-    netWorth: "Kekayaan bersih",
-    incomeThisMonth: "Pemasukan bulan ini",
-    expenseThisMonth: "Pengeluaran bulan ini",
-    accounts: "Rekening",
-    categories: "Kategori",
-    emptyTitle: "Belum ada rekening",
-    emptyBody: "Tambahkan rekening bank, e-wallet, atau kas untuk mulai mencatat. Nanti agent Anda juga bisa melakukannya lewat server MCP.",
-  },
-  soon: {
-    title: "Hadir di {milestone}",
-    body: "Layar ini bagian dari roadmap di docs/SPEC.md.",
-  },
-  locale: { label: "Bahasa", id: "Bahasa Indonesia", en: "English" },
-};
 
 export const dictionaries = { id, en } as const;
 export type Locale = keyof typeof dictionaries;
@@ -100,3 +20,6 @@ export const isLocale = (v: unknown): v is Locale => v === "id" || v === "en";
 export function fmt(template: string, values: Record<string, string | number>): string {
   return template.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k] ?? `{${k}}`));
 }
+
+/** Intl locale for numbers and dates. Rupiah formatting stays Indonesian-style in English too. */
+export const intlLocale = (locale: Locale): string => (locale === "id" ? "id-ID" : "en-ID");
