@@ -89,3 +89,15 @@ describe("dashboard figures", () => {
     expect(days[5].total).toBe(100_000n);
   });
 });
+
+describe("need/want on record", () => {
+  it("stores a tag given when recording and ignores it on income", async () => {
+    const actor = await makeUser();
+    const { id: bca } = await createAccount(actor, { name: "BCA", type: "BANK", openingDate: "2026-09-01" });
+    await recordTransaction(actor, { accountId: bca, kind: "INCOME", amount: "5jt", bookedOn: "2026-10-01", description: "Gaji", necessity: "NEED" });
+    const { id } = await recordTransaction(actor, { accountId: bca, kind: "EXPENSE", amount: "45rb", bookedOn: "2026-10-10", description: "x", categoryId: await categoryId(actor, "Belanja harian"), necessity: "WANT" });
+    expect((await db.transaction.findUniqueOrThrow({ where: { id } })).necessity).toBe("WANT");
+    expect(await db.transaction.count({ where: { userId: actor.userId, necessity: { not: null } } })).toBe(1);
+    expect(await allocation(actor.userId, "2026-10")).toMatchObject({ needs: 0n, wants: 45_000n });
+  });
+});

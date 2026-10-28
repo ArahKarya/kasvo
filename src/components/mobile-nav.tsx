@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeftRight, LayoutDashboard, Menu, PiggyBank, Plus } from "lucide-react";
+import { OPEN_QUICK_ENTRY } from "./quick-entry-sheet";
 
 interface MobileNavProps {
   labels: { dashboard: string; transactions: string; record: string; budgets: string; more: string };
@@ -31,6 +32,10 @@ export function MobileNav({ labels }: MobileNavProps) {
           <Link
             key={href}
             href={href}
+            onClick={primary ? (e) => {
+              e.preventDefault();
+              window.dispatchEvent(new Event(OPEN_QUICK_ENTRY));
+            } : undefined}
             aria-current={active ? "page" : undefined}
             className="flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] text-muted aria-[current=page]:font-semibold aria-[current=page]:text-accent"
           >

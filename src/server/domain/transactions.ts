@@ -22,11 +22,14 @@ export const recordTransactionSchema = z.object({
   payee: optionalText(120),
   note: optionalText(500),
   categoryId: idSchema.optional().or(z.literal("").transform(() => undefined)),
+  /** Overrides the category's need/want; omit to inherit it. */
+  necessity: z.enum(["NEED", "WANT"]).optional(),
 });
 
 export const editTransactionSchema = recordTransactionSchema.partial().extend({
-  /** For these three, null clears the field and undefined leaves it alone. */
+  /** For these, null clears the field and undefined leaves it alone. */
   categoryId: idSchema.nullable().optional(),
+  necessity: z.enum(["NEED", "WANT"]).nullable().optional(),
   payee: z.string().trim().max(120).nullable().optional(),
   note: z.string().trim().max(500).nullable().optional(),
 });
@@ -87,6 +90,7 @@ export async function writeTransaction(tx: Tx, actor: Actor, data: z.output<type
       payee: data.payee,
       note: data.note,
       categoryId: data.categoryId,
+      necessity: data.kind === "EXPENSE" ? data.necessity : undefined,
       fingerprint: fingerprint(data.accountId, data.bookedOn, amount, data.description),
       ...sourceOf(actor),
     },
@@ -137,6 +141,7 @@ export async function editTransaction(actor: Actor, id: string, input: EditTrans
         payee: patch.payee === undefined ? before.payee : patch.payee,
         note: patch.note === undefined ? before.note : patch.note,
         categoryId,
+        necessity: kind === "INCOME" ? null : patch.necessity === undefined ? before.necessity : patch.necessity,
         fingerprint: fingerprint(accountId, bookedOn, amount, description),
       },
     });

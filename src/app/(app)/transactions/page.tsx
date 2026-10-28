@@ -3,6 +3,7 @@ import Link from "next/link";
 import { recordAction } from "@/app/actions/ledger";
 import { TransactionForm } from "@/components/transaction-form";
 import { TransactionList } from "@/components/transaction-list";
+import { UndoToast } from "@/components/undo-toast";
 import { buttonClass, Card, Field, Input, PageTitle, Select } from "@/components/ui";
 import { requireUser } from "@/server/auth";
 import { db } from "@/server/db";
@@ -48,8 +49,12 @@ export default async function TransactionsPage({ searchParams }: PageProps<"/tra
     return `/transactions?${params}`;
   };
 
+  const deleted = one(sp.deleted);
+  const withoutDeleted = `/transactions?${new URLSearchParams(Object.entries(sp).flatMap(([k, v]) => (typeof v === "string" && k !== "deleted" ? [[k, v]] : [])))}`;
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
+      {deleted && <UndoToast key={deleted} ids={[deleted]} href={withoutDeleted} labels={{ deleted: t.undo.deleted, undo: t.undo.undo }} />}
       <PageTitle>{t.tx.title}</PageTitle>
 
       {accounts.length === 0 ? (

@@ -39,6 +39,10 @@ export const en = {
     language: "Language",
     changeServer: "Change server",
     hideAmounts: "Hide amounts",
+    theme: "Theme",
+    themeLight: "Light",
+    themeDark: "Dark",
+    themeSystem: "System",
     showAmounts: "Show amounts",
   },
   dashboard: {
@@ -98,6 +102,10 @@ export const id: typeof en = {
     language: "Bahasa",
     changeServer: "Ganti server",
     hideAmounts: "Sembunyikan nominal",
+    theme: "Tema",
+    themeLight: "Terang",
+    themeDark: "Gelap",
+    themeSystem: "Sistem",
     showAmounts: "Tampilkan nominal",
   },
   dashboard: {

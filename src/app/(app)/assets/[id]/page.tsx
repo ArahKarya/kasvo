@@ -39,7 +39,7 @@ export default async function AssetPage({ params }: PageProps<"/assets/[id]">) {
         ← {t.common.back}
       </Link>
       <section className="flex items-center gap-4 rounded-xl border border-border bg-surface p-5">
-        <span aria-hidden="true" className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gold-soft text-[#a8730a] dark:text-gold">
+        <span aria-hidden="true" className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gold-soft text-gold-text">
           <Icon size={28} />
         </span>
         <div className="min-w-0 flex-1">

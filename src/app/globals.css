@@ -6,6 +6,7 @@
  * Income/expense colours only on numbers.
  */
 :root {
+  color-scheme: light;
   --bg: #f3f6f4;
   --surface: #ffffff;
   --surface-2: #f7f9f8;
@@ -18,6 +19,7 @@
   --accent-text: #ffffff;
   --gold: #f4ae2a;
   --gold-soft: #fdf3dc;
+  --gold-text: #a8730a;
   --income: #1f7a4d;
   --expense: #b4412f;
   --income-soft: #e8f4ed;
@@ -37,8 +39,9 @@
   --status-critical: #d03b3b;
 }
 
+/* Dark: follows the system unless the user picked a theme (data-theme on <html>, see ThemeSwitch). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0b100d;
     --surface: #131a16;
     --surface-2: #18211c;
@@ -62,7 +65,37 @@
     --alloc-needs: #5b93f2;
     --alloc-wants: #cf7f26;
     --alloc-savings: #22a074;
+    --gold-text: #f6b93f;
+    color-scheme: dark;
   }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b100d;
+  --surface: #131a16;
+  --surface-2: #18211c;
+  --border: #233029;
+  --text: #e6ede9;
+  --muted: #91a198;
+  --accent: #3fae80;
+  --accent-strong: #1d7a55;
+  --accent-soft: #17291f;
+  --accent-text: #08130d;
+  --gold: #f6b93f;
+  --gold-soft: #2c2412;
+  --income: #4cc38a;
+  --expense: #ef7a64;
+  --income-soft: #13261b;
+  --expense-soft: #2a1714;
+  --danger: #ef7a64;
+  --chart-income: #1f9e8a;
+  --chart-expense: #e8613c;
+  --chart-bar: #1f9e8a;
+  --alloc-needs: #5b93f2;
+  --alloc-wants: #cf7f26;
+  --alloc-savings: #22a074;
+  --gold-text: #f6b93f;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -78,6 +111,7 @@
   --color-surface-2: var(--surface-2);
   --color-gold: var(--gold);
   --color-gold-soft: var(--gold-soft);
+  --color-gold-text: var(--gold-text);
   --color-income-soft: var(--income-soft);
   --color-expense-soft: var(--expense-soft);
   --color-income: var(--income);
@@ -111,4 +145,18 @@ body {
 [data-hide-amounts] .num {
   filter: blur(7px);
   user-select: none;
+}
+
+/* The undo toast's countdown bar. */
+@keyframes shrink {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+/* Swipeable chip rows without a visible scrollbar. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

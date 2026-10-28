@@ -185,5 +185,6 @@ export async function editTransactionAction(id: string, isTransfer: boolean, _pr
 export async function deleteTransactionAction(form: FormData): Promise<void> {
   const id = text(form, "id") ?? "";
   await perform((actor) => deleteTransactions(actor, [id]), LEDGER_PATHS);
-  redirect("/transactions");
+  // The list shows an "Undo" toast for a few seconds; deleting one transfer leg removes both.
+  redirect(`/transactions?deleted=${encodeURIComponent(id)}`);
 }

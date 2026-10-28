@@ -1,24 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { recordAction } from "@/app/actions/ledger";
-import { TransactionForm } from "@/components/transaction-form";
+import { QuickEntry } from "@/components/quick-entry";
 import { buttonClass, Card, PageTitle } from "@/components/ui";
 import { requireUser } from "@/server/auth";
 import { db } from "@/server/db";
 import { todayIn } from "@/server/domain/dates";
 import { pickerOptions } from "@/server/domain/options";
 import { getDictionary } from "@/i18n/server";
+import { intlLocale } from "@/i18n/dictionaries";
 
 export const metadata: Metadata = { title: "Record" };
 
 /** Quick entry: just the form, for the phone's centre tab. */
-export default async function RecordPage({ searchParams }: PageProps<"/record">) {
+export default async function RecordPage() {
   const user = await requireUser();
-  const { t } = await getDictionary();
+  const { t, locale } = await getDictionary();
   const { timezone } = await db.user.findUniqueOrThrow({ where: { id: user.id }, select: { timezone: true } });
   const { accounts, categories } = await pickerOptions(user.id);
-  const requested = (await searchParams).account;
-  const accountId = typeof requested === "string" && accounts.some((a) => a.id === requested) ? requested : accounts[0]?.id;
+  const accountId = accounts[0]?.id;
 
   return (
     <div className="mx-auto max-w-xl space-y-4">
@@ -32,14 +31,7 @@ export default async function RecordPage({ searchParams }: PageProps<"/record">)
         </Card>
       ) : (
         <Card>
-          <TransactionForm
-            mode="create"
-            action={recordAction}
-            labels={{ tx: t.tx, common: t.common }}
-            accounts={accounts}
-            categories={categories}
-            defaults={{ kind: "EXPENSE", accountId, amount: "", bookedOn: todayIn(timezone), description: "", payee: "", note: "", categoryId: "" }}
-          />
+          <QuickEntry accounts={accounts} categories={categories} today={todayIn(timezone)} locale={intlLocale(locale)} currency={user.baseCurrency} labels={{ quick: t.quick, tx: t.tx }} />
         </Card>
       )}
     </div>

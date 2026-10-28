@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { THEME_COOKIE } from "@/components/amounts-cookie";
+import { ThemeSwitch } from "@/components/theme-switch";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
@@ -11,6 +13,8 @@ import { getDictionary } from "@/i18n/server";
 import { fmt } from "@/i18n/dictionaries";
 
 export const metadata: Metadata = { title: "More" };
+
+const themeOf = (v: string | undefined) => (v === "light" || v === "dark" ? v : "system");
 
 /**
  * Inside the Capacitor app (its user agent ends in "KasvoApp") the setup screen lives in the
@@ -44,6 +48,10 @@ export default async function MorePage() {
       </ul>
       <section className="space-y-3 rounded-xl border border-border bg-surface p-4">
         <p className="truncate text-sm text-muted">{fmt(t.mobileNav.signedInAs, { email: user.email })}</p>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm">{t.mobileNav.theme}</span>
+          <ThemeSwitch initial={themeOf((await cookies()).get(THEME_COOKIE)?.value)} labels={{ label: t.mobileNav.theme, light: t.mobileNav.themeLight, dark: t.mobileNav.themeDark, system: t.mobileNav.themeSystem }} />
+        </div>
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm">{t.mobileNav.language}</span>
           <LocaleSwitch locale={locale} t={t} />

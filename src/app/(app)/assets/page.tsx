@@ -57,7 +57,7 @@ export default async function AssetsPage() {
             return (
               <li key={x.id}>
                 <Link href={`/assets/${x.id}`} className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4 hover:border-accent/50">
-                  <span aria-hidden="true" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gold-soft text-[#a8730a] dark:text-gold">
+                  <span aria-hidden="true" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gold-soft text-gold-text">
                     <Icon size={22} />
                   </span>
                   <span className="min-w-0 flex-1">
