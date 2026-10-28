@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { copyBudgetsAction, setBudgetAction } from "@/app/actions/budgets";
 import { ActionForm } from "@/components/action-form";
 import { BudgetMeter } from "@/components/budget-meter";
+import { CategoryIcon } from "@/components/category-icons";
 import { buttonClass, Card, Field, Input, PageTitle, Select } from "@/components/ui";
 import { requireUser } from "@/server/auth";
 import { db } from "@/server/db";
@@ -32,6 +33,11 @@ export default async function BudgetsPage({ searchParams }: PageProps<"/budgets"
   const { daysElapsed, daysInMonth } = status.progress;
   const timeNote = daysElapsed === 0 ? b.notStarted : daysElapsed >= daysInMonth ? b.monthDone : fmt(b.daysLeft, { n: daysInMonth - daysElapsed });
   const budgetedIds = new Set(status.lines.map((l) => l.categoryId));
+  const styles = new Map(
+    (await db.category.findMany({ where: { userId: user.id, id: { in: [...budgetedIds] } }, select: { id: true, icon: true, color: true } })).map((c) => [c.id, c]),
+  );
+  const usedPct = status.budgeted > 0n ? Math.round((Number(status.spentInBudgets) / Number(status.budgeted)) * 100) : 0;
+  const left = status.budgeted - status.spentInBudgets;
   const available = categories.filter((c) => c.kind === "EXPENSE" && !budgetedIds.has(c.id));
 
   return (
@@ -53,19 +59,32 @@ export default async function BudgetsPage({ searchParams }: PageProps<"/budgets"
       </PageTitle>
       <p className="-mt-3 text-sm text-muted">{b.intro}</p>
 
-      <dl className="grid gap-3 sm:grid-cols-4">
-        {[
-          [b.budgeted, money(status.budgeted)],
-          [b.spentInBudgets, money(status.spentInBudgets)],
-          [b.totalSpending, money(status.totalSpending)],
-          [t.reports.period, timeNote],
-        ].map(([label, value]) => (
-          <div key={label} className="rounded-xl border border-border bg-surface px-3 py-2">
-            <dt className="text-xs text-muted">{label}</dt>
-            <dd className="num font-bold">{value}</dd>
+      <section className="rounded-2xl bg-[linear-gradient(135deg,#1d7a57_0%,#145c42_55%,#0f4a35_100%)] p-5 text-white">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-sm text-white/75">{b.budgeted}</p>
+            <p className="num text-3xl font-bold tracking-tight">{money(status.budgeted)}</p>
           </div>
-        ))}
-      </dl>
+          <p className="rounded-sm bg-white/15 px-2 py-1 text-xs font-medium">{timeNote}</p>
+        </div>
+        <div className="mt-4 h-2.5 rounded-sm bg-white/20" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(usedPct, 100)} aria-label={b.spentInBudgets}>
+          <div className={`h-full rounded-sm ${left < 0n ? "bg-[#ff8f7a]" : "bg-[#f4ae2a]"}`} style={{ width: `${Math.min(usedPct, 100)}%` }} />
+        </div>
+        <dl className="mt-3 grid grid-cols-3 gap-3 text-sm">
+          <div>
+            <dt className="text-xs text-white/70">{b.spentInBudgets}</dt>
+            <dd className="num font-semibold">{money(status.spentInBudgets)}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-white/70">{left >= 0n ? b.leftLabel : b.overLabel}</dt>
+            <dd className="num font-semibold">{money(left >= 0n ? left : -left)}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-white/70">{b.totalSpending}</dt>
+            <dd className="num font-semibold">{money(status.totalSpending)}</dd>
+          </div>
+        </dl>
+      </section>
 
       {status.lines.length === 0 ? (
         <Card className="space-y-3">
@@ -78,8 +97,9 @@ export default async function BudgetsPage({ searchParams }: PageProps<"/budgets"
         <ul className="space-y-3">
           {status.lines.map((l) => (
             <li key={l.categoryId} className="rounded-xl border border-border bg-surface p-4">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <Link href={`/transactions?category=${l.categoryId}&month=${month}`} className="font-medium hover:underline">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <Link href={`/transactions?category=${l.categoryId}&month=${month}`} className="flex items-center gap-2.5 font-medium hover:underline">
+                  <CategoryIcon icon={styles.get(l.categoryId)?.icon} color={styles.get(l.categoryId)?.color} size={32} />
                   {l.name}
                 </Link>
                 <p className="num text-sm">

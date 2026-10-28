@@ -153,6 +153,12 @@ export interface Allocation {
 /** The 50/30/20 view for a month: a transaction's own tag wins, then its category's, then the parent's. */
 export async function allocation(userId: string, month: string): Promise<Allocation> {
   const range = monthRange(month)!;
+  return allocationBetween(userId, range.start, range.end);
+}
+
+/** The same for any span of days: [start, end). */
+export async function allocationBetween(userId: string, start: Date, end: Date): Promise<Allocation> {
+  const range = { start, end };
   const [rows, income] = await Promise.all([
     db.$queryRaw<{ necessity: Necessity | null; total: bigint }[]>`
       SELECT COALESCE(t.necessity, c.necessity, p.necessity) AS necessity, SUM(-t.amount)::bigint AS total
