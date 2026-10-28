@@ -37,7 +37,7 @@ export function registerAssetTools(server: McpServer, ctx: McpContext): void {
     "kasvo_list_assets",
     {
       title: "List assets",
-      description: "Assets outside the accounts (property, vehicles, gold, stocks, funds, crypto, deposits) with their latest value, units, purchase value, and gain. They count toward net worth in kasvo_overview.",
+      description: "Assets outside the accounts (property, vehicles, gold, stocks, funds, crypto, deposits, pension funds such as BPJS JP/JHT) with their latest value, units, purchase value, and gain. They count toward net worth in kasvo_overview.",
       inputSchema: { includeArchived: z.boolean().optional() },
       annotations: { readOnlyHint: true, openWorldHint: false },
     },

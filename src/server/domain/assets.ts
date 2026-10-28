@@ -11,7 +11,7 @@ import { daySchema, optionalDaySchema, optionalText, positiveAmountSchema } from
 
 type Tx = Prisma.TransactionClient;
 
-export const ASSET_KINDS = ["PROPERTY", "VEHICLE", "GOLD", "STOCK", "FUND", "CRYPTO", "DEPOSIT", "OTHER"] as const satisfies readonly AssetKind[];
+export const ASSET_KINDS = ["PROPERTY", "VEHICLE", "GOLD", "STOCK", "FUND", "CRYPTO", "DEPOSIT", "PENSION", "OTHER"] as const satisfies readonly AssetKind[];
 
 /** "12,5" or 12.5 → a positive decimal string; empty means "not unit-based". */
 const unitsSchema = z

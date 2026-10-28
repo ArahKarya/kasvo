@@ -433,6 +433,7 @@ enum AssetKind {
   FUND
   CRYPTO
   DEPOSIT
+  PENSION
   OTHER
 }
 
