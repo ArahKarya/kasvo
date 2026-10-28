@@ -106,7 +106,7 @@ export default async function DashboardPage() {
         </section>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           <HeroCard
             wealth={o.wealth}
@@ -136,7 +136,7 @@ export default async function DashboardPage() {
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <SpendingActivity
           days={days}
           safePerDay={safePerDay}
@@ -181,7 +181,7 @@ export default async function DashboardPage() {
       </div>
 
       {(budgets.lines.length > 0 || due.length > 0 || openGoals.length > 0) && (
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {budgets.lines.length > 0 && (
             <Card>
               <SectionHead title={t.budgets.title} href="/budgets" more={t.dashboard.seeAll} />
@@ -234,7 +234,7 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {accounts.length > 0 && (
           <Card>
             <SectionHead title={h.myAccounts} href="/accounts" more={t.dashboard.seeAll} />

@@ -48,7 +48,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           </form>
         </div>
       </aside>
-      <main className="flex-1 px-4 pt-5 pb-[calc(5rem+env(safe-area-inset-bottom))] md:px-8 md:py-8">{children}</main>
+      <main className="min-w-0 flex-1 overflow-x-clip px-4 pt-5 pb-[calc(5rem+env(safe-area-inset-bottom))] md:px-8 md:py-8">{children}</main>
       <QuickEntrySheet
         accounts={options.accounts}
         categories={options.categories}
