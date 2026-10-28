@@ -13,7 +13,7 @@ import { todayIn } from "@/server/domain/dates";
 import { listDebts, type DebtView } from "@/server/domain/debts";
 import { formatMoney } from "@/server/domain/money";
 import { getDictionary } from "@/i18n/server";
-import { formatDay, intlLocale } from "@/i18n/dictionaries";
+import { fmt, formatDay, intlLocale } from "@/i18n/dictionaries";
 
 export const metadata: Metadata = { title: "Debts" };
 
@@ -30,6 +30,9 @@ export default async function DebtsPage() {
   const open = debts.filter((d) => !d.archived && d.status.state !== "settled");
   const closed = debts.filter((d) => d.archived || d.status.state === "settled");
   const d = t.debts;
+  const owe = open.filter((r) => r.direction === "BORROWED").reduce((sum, r) => sum + r.status.outstanding, 0n);
+  const owed = open.filter((r) => r.direction === "LENT").reduce((sum, r) => sum + r.status.outstanding, 0n);
+  const dueCount = open.filter((r) => r.status.state === "overdue" || r.status.state === "due_soon").length;
 
   const group = (title: string, rows: DebtView[]) =>
     rows.length > 0 && (
@@ -50,6 +53,22 @@ export default async function DebtsPage() {
     <div className="mx-auto max-w-4xl space-y-6">
       <PageTitle>{d.title}</PageTitle>
       <p className="-mt-3 text-sm text-muted">{d.intro}</p>
+
+      {open.length > 0 && (
+        <section className="rounded-2xl bg-[linear-gradient(135deg,#1d7a57_0%,#145c42_55%,#0f4a35_100%)] p-5 text-white">
+          {dueCount > 0 && <span className="rounded-sm bg-[#f4ae2a] px-2 py-1 text-xs font-semibold text-[#3a2a05]">{fmt(d.dueCount, { n: dueCount })}</span>}
+          <dl className="mt-3 grid grid-cols-2 gap-4">
+            <div>
+              <dt className="text-sm text-white/75">{d.borrowed}</dt>
+              <dd className="num text-2xl font-bold tracking-tight">{money(owe)}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-white/75">{d.lent}</dt>
+              <dd className="num text-2xl font-bold tracking-tight">{money(owed)}</dd>
+            </div>
+          </dl>
+        </section>
+      )}
 
       {open.length === 0 && <p className="rounded-xl border border-dashed border-border bg-surface p-4 text-sm text-muted">{d.empty}</p>}
       {group(d.borrowed, open.filter((r) => r.direction === "BORROWED"))}

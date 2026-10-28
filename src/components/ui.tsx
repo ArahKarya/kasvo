@@ -37,7 +37,9 @@ export function Select(props: ComponentProps<"select">) {
 }
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-xl border border-border bg-surface p-4 sm:p-5 ${className}`}>{children}</section>;
+  // A "p-0" in className means the card lays out its own padding (lists with full-width rows).
+  const pad = /(^|\s)p-0(\s|$)/.test(className) ? "" : "p-4 sm:p-5";
+  return <section className={`rounded-xl border border-border bg-surface ${pad} ${className}`}>{children}</section>;
 }
 
 export function PageTitle({ children, actions }: { children: ReactNode; actions?: ReactNode }) {

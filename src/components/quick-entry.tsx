@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useSyncExternalStore, useTransition, type FormEvent } from "react";
-import { Banknote, ChevronLeft, ChevronRight, CreditCard, Delete, HandCoins, Heart, Landmark, Smartphone, Star, TrendingUp, type LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Delete, Heart, Landmark, Star } from "lucide-react";
+import { ACCOUNT_ICONS } from "./account-icons";
 import { quickRecordAction } from "@/app/actions/quick";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { evaluateAmount, isExpression } from "@/lib/amount-expression";
@@ -37,7 +38,6 @@ interface QuickEntryProps {
   onSaved?: (message: string) => void;
 }
 
-const ACCOUNT_ICONS: Record<string, LucideIcon> = { BANK: Landmark, EWALLET: Smartphone, CASH: Banknote, CREDIT_CARD: CreditCard, LOAN: HandCoins, INVESTMENT: TrendingUp };
 const LAST_ACCOUNT = "kasvo.lastAccount";
 
 const shiftDay = (day: string, by: number): string => new Date(Date.parse(day) + by * 86_400_000).toISOString().slice(0, 10);

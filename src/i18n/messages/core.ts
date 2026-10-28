@@ -1,7 +1,15 @@
 /** App shell, auth, and dashboard strings. */
 
 export const en = {
-  app: { tagline: "Personal finance your AI agent can work with" },
+  app: {
+    tagline: "Personal finance your AI agent can work with",
+    highlights: [
+      "Record in seconds and import bank or e-wallet statements, PDFs included",
+      "Budgets, goals, debts, and assets in one place",
+      "Your AI agent can record and analyse through MCP",
+    ],
+    selfHosted: "Open source · self-hosted · your data stays yours",
+  },
   auth: {
     login: "Sign in",
     register: "Create account",
@@ -64,7 +72,15 @@ export const en = {
 };
 
 export const id: typeof en = {
-  app: { tagline: "Keuangan pribadi yang bisa dikelola bersama agent AI" },
+  app: {
+    tagline: "Keuangan pribadi yang bisa dikelola bersama agent AI",
+    highlights: [
+      "Catat dalam hitungan detik, impor mutasi bank & e-wallet, termasuk PDF",
+      "Anggaran, target, utang, dan aset dalam satu tempat",
+      "Agent AI Anda bisa mencatat dan menganalisis lewat MCP",
+    ],
+    selfHosted: "Open source · self-hosted · data tetap milik Anda",
+  },
   auth: {
     login: "Masuk",
     register: "Buat akun",

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Goal as GoalIcon, Wallet } from "lucide-react";
 import type { GoalView } from "@/server/domain/goals";
 import { fmt, type Dictionary } from "@/i18n/dictionaries";
 import { GOAL_TONE } from "./plan-tones";
@@ -22,14 +23,19 @@ export function GoalCard({ goal, t, money, date, asHeading = false }: GoalCardPr
   ].filter(Boolean);
   return (
     <li className="rounded-xl border border-border bg-surface p-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        {asHeading ? (
-          <h1 className="text-2xl font-bold tracking-tight">{goal.name}</h1>
-        ) : (
-          <Link href={`/goals/${goal.id}`} className="font-medium hover:underline">
-            {goal.name}
-          </Link>
-        )}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-3">
+          <span aria-hidden="true" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-soft text-gold-text">
+            {goal.accountId ? <Wallet size={18} /> : <GoalIcon size={18} />}
+          </span>
+          {asHeading ? (
+            <h1 className="text-2xl font-bold tracking-tight">{goal.name}</h1>
+          ) : (
+            <Link href={`/goals/${goal.id}`} className="font-medium hover:underline">
+              {goal.name}
+            </Link>
+          )}
+        </span>
         <p className="num text-sm">
           {fmt(g.savedOf, { saved: money(p.saved), target: money(goal.targetAmount) })}
           {p.remaining > 0n && <span className="ml-2 text-muted">{fmt(g.remaining, { amount: money(p.remaining) })}</span>}

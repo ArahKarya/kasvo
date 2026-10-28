@@ -28,6 +28,8 @@ export const en = {
     editTitle: "Edit goal",
     remove: "Remove",
     archivedList: "Archived goals",
+    collected: "Saved so far",
+    ofTargets: "of {amount} in targets",
     state: { achieved: "Reached", on_track: "On track", behind: "Behind", overdue: "Past the date", open: "In progress" },
   },
   debts: {
@@ -80,6 +82,7 @@ export const en = {
     empty: "No debts recorded.",
     editTitle: "Edit debt",
     settledList: "Settled and archived",
+    dueCount: "{n} due or overdue",
     state: { active: "Active", due_soon: "Due soon", overdue: "Overdue", settled: "Paid off" },
     line: { paid: "Paid", partial: "Partly paid", overdue: "Overdue", due: "Due soon", upcoming: "Upcoming" },
   },
@@ -119,6 +122,8 @@ export const id: typeof en = {
     editTitle: "Ubah target",
     remove: "Hapus",
     archivedList: "Target yang diarsipkan",
+    collected: "Terkumpul",
+    ofTargets: "dari total target {amount}",
     state: { achieved: "Tercapai", on_track: "Sesuai rencana", behind: "Tertinggal", overdue: "Lewat tanggal", open: "Berjalan" },
   },
   debts: {
@@ -171,6 +176,7 @@ export const id: typeof en = {
     empty: "Belum ada utang atau piutang.",
     editTitle: "Ubah utang",
     settledList: "Lunas dan diarsipkan",
+    dueCount: "{n} jatuh tempo/terlambat",
     state: { active: "Berjalan", due_soon: "Segera jatuh tempo", overdue: "Terlambat", settled: "Lunas" },
     line: { paid: "Lunas", partial: "Sebagian", overdue: "Terlambat", due: "Segera", upcoming: "Belum" },
   },

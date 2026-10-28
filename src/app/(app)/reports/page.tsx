@@ -172,7 +172,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
             </Card>
 
             <div className="space-y-4">
-              <Card className="p-0 sm:p-0">
+              <Card className="p-0">
                 <h2 className="px-4 pt-4 font-semibold">{r.comparedWith}</h2>
                 {comparison.rows.length === 0 ? (
                   <p className="px-4 pb-4 text-sm text-muted">{r.noData}</p>
@@ -203,7 +203,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                 )}
               </Card>
 
-              <Card className="p-0 sm:p-0">
+              <Card className="p-0">
                 <h2 className="px-4 pt-4 font-semibold">{r.byPayee}</h2>
                 {payees.rows.filter((p) => p.key).length === 0 ? (
                   <p className="px-4 pb-4 text-sm text-muted">{r.noData}</p>

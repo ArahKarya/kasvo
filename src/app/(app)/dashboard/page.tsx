@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
-import { Banknote, CreditCard, HandCoins, Landmark, Smartphone, TrendingUp, Wallet, type LucideIcon } from "lucide-react";
-import type { AccountType } from "@/generated/prisma/client";
+import { Wallet } from "lucide-react";
+import { ACCOUNT_ICONS } from "@/components/account-icons";
 import { HIDE_AMOUNTS_COOKIE } from "@/components/amounts-cookie";
 import { BudgetMeter } from "@/components/budget-meter";
 import { CashflowChart } from "@/components/cashflow-chart";
@@ -35,15 +35,6 @@ import { getDictionary } from "@/i18n/server";
 import { fmt, formatDay, intlLocale } from "@/i18n/dictionaries";
 
 export const metadata: Metadata = { title: "Dashboard" };
-
-const ACCOUNT_ICONS: Record<AccountType, LucideIcon> = {
-  BANK: Landmark,
-  EWALLET: Smartphone,
-  CASH: Banknote,
-  CREDIT_CARD: CreditCard,
-  LOAN: HandCoins,
-  INVESTMENT: TrendingUp,
-};
 
 function SectionHead({ title, href, more }: { title: string; href: string; more: string }) {
   return (
