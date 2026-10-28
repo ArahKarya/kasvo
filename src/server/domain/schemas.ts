@@ -1,10 +1,11 @@
 import { z } from "zod";
 import { parseDay } from "./dates";
 import { parseRupiah } from "./money";
+import { evaluateAmount } from "@/lib/amount-expression";
 
-/** Whole rupiah from a bigint, an integer, or text such as "25rb" or "Rp1.250.000". */
+/** Whole rupiah from a bigint, an integer, text such as "25rb" or "Rp1.250.000", or a sum such as "25rb+10rb×2". */
 export const amountSchema = z.union([z.bigint(), z.number().int(), z.string()]).transform((value, ctx) => {
-  const parsed = typeof value === "string" ? parseRupiah(value) : BigInt(value);
+  const parsed = typeof value === "string" ? (parseRupiah(value) ?? evaluateAmount(value)) : BigInt(value);
   if (parsed === null) {
     ctx.addIssue({ code: "custom", message: `Not an amount: ${String(value)}. Try "25000", "25rb", or "1,5jt".` });
     return z.NEVER;

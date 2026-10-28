@@ -12,7 +12,8 @@ import { run } from "../result";
 import { resolveAccount, resolveCategory, today } from "../resolve";
 
 const WRITE = { readOnlyHint: false, destructiveHint: false, openWorldHint: false } as const;
-const amountArg = z.union([z.number(), z.string()]).describe('Positive amount: 25000, "25rb", "1,5jt", or "Rp1.250.000"');
+const amountArg = z.union([z.number(), z.string()]).describe('Positive amount: 25000, "25rb", "1,5jt", "Rp1.250.000", or a sum such as "25rb+10rb×2"');
+const necessityArg = z.enum(["NEED", "WANT"]).describe("Need or want for the 50/30/20 view; omit to inherit the category's default (expenses only)");
 const dateArg = z.string().optional().describe("YYYY-MM-DD; defaults to today in the user's time zone");
 
 const transactionArgs = {
@@ -24,6 +25,7 @@ const transactionArgs = {
   category: z.string().optional().describe("Category id or name matching the kind"),
   payee: z.string().optional(),
   note: z.string().optional(),
+  necessity: necessityArg.optional(),
 };
 
 const transactionObject = z.object(transactionArgs);
@@ -40,6 +42,7 @@ export function registerWriteTools(server: McpServer, ctx: McpContext): void {
       description: a.description,
       payee: a.payee,
       note: a.note,
+      necessity: a.kind === "EXPENSE" ? a.necessity : undefined,
     });
 
   server.registerTool(
@@ -113,7 +116,7 @@ export function registerWriteTools(server: McpServer, ctx: McpContext): void {
     {
       title: "Edit a transaction",
       description:
-        "Changes fields of one transaction; omitted fields stay as they are. Pass null to clear category, payee, or note. For a transfer only date, description, and note can change.",
+        "Changes fields of one transaction; omitted fields stay as they are. Pass null to clear category, payee, note, or necessity (null makes it follow the category's need/want again). For a transfer only date, description, and note can change.",
       inputSchema: {
         id: z.string(),
         kind: z.enum(["EXPENSE", "INCOME"]).optional(),
@@ -124,6 +127,7 @@ export function registerWriteTools(server: McpServer, ctx: McpContext): void {
         category: z.string().nullable().optional(),
         payee: z.string().nullable().optional(),
         note: z.string().nullable().optional(),
+        necessity: z.enum(["NEED", "WANT"]).nullable().optional(),
       },
       annotations: { ...WRITE, idempotentHint: true },
     },
@@ -141,6 +145,7 @@ export function registerWriteTools(server: McpServer, ctx: McpContext): void {
           categoryId: a.category === null ? null : a.category ? await resolveCategory(ctx, a.category, kind) : undefined,
           payee: a.payee,
           note: a.note,
+          necessity: a.necessity,
         });
         return { id: a.id, updated: true };
       }),

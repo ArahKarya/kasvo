@@ -102,12 +102,15 @@ Names use the `kasvo_` prefix so they read clearly next to other servers' tools.
 | `kasvo_list_rules` | Categorization rules |
 | `kasvo_list_imports`, `kasvo_get_import` | Import history; review a staged batch row by row |
 | `kasvo_list_goals` | Savings goals: progress, needed per month, projected date, state |
+| `kasvo_list_assets` | Assets (property, vehicles, gold, stocks, funds, crypto, deposits) with latest value and gain |
+| `kasvo_net_worth` | Net worth parts (accounts, assets, receivables, credit/loan balances, debts) and month-end trend |
+| `kasvo_allocation` | 50/30/20: needs, wants, and savings as shares of income for any period |
 | `kasvo_list_debts`, `kasvo_get_debt` | Debts and receivables: outstanding, next/overdue instalments, full schedule and payments |
 
 **write**
 | Tool | Purpose |
 |---|---|
-| `kasvo_record_transaction` | One income/expense; accepts natural amounts (`"25rb"`, `"1,5jt"`) |
+| `kasvo_record_transaction` | One income/expense; accepts natural amounts (`"25rb"`, `"1,5jt"`, `"25rb+10rb×2"`) and an optional need/want |
 | `kasvo_record_transactions` | Up to 200 at once (e.g. from a receipt or chat log) |
 | `kasvo_record_transfer` | Between two accounts, optional fee |
 | `kasvo_edit_transaction` | Change fields of one transaction |
@@ -121,6 +124,8 @@ Names use the `kasvo_` prefix so they read clearly next to other servers' tools.
 | `kasvo_discard_import`, `kasvo_apply_rules` | Drop an uncommitted batch; run rules over uncategorized rows |
 | `kasvo_restore_transactions` | Undo a delete within 30 days |
 | `kasvo_create_goal`, `kasvo_update_goal`, `kasvo_contribute_goal` | Savings goals (linked account or manual contributions) |
+| `kasvo_create_asset`, `kasvo_value_asset` | Record an asset; update its value (total or unit price × units) |
+| `kasvo_update_category` | Rename; set icon, colour, or need/want default |
 | `kasvo_create_debt`, `kasvo_pay_debt` | Debts/receivables; a payment books a transaction, a transfer to a linked loan account, or links an existing (imported) transaction |
 
 **destructive** (two-step)

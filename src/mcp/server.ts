@@ -11,10 +11,11 @@ import { registerImportTools } from "./tools/imports";
 import { registerBudgetTools } from "./tools/budgets";
 import { registerPlanTools } from "./tools/plans";
 import { registerAssetTools } from "./tools/assets";
+import { registerInsightTools } from "./tools/insights";
 import { registerReadTools } from "./tools/read";
 import { registerWriteTools } from "./tools/write";
 
-export const SERVER_INFO = { name: "kasvo", version: "0.7.0" } as const;
+export const SERVER_INFO = { name: "kasvo", version: "0.8.0" } as const;
 
 const INSTRUCTIONS = `Kasvo holds the user's personal finances (Indonesia first; amounts are whole rupiah unless an account says otherwise).
 - Start with kasvo_overview. Accounts and categories can be referenced by name or id.
@@ -22,7 +23,9 @@ const INSTRUCTIONS = `Kasvo holds the user's personal finances (Indonesia first;
 - Amount inputs accept Indonesian notation: "25rb", "1,5jt", "Rp1.250.000".
 - Destructive tools only prepare a change: show the returned summary to the user and call kasvo_confirm only after they agree.
 - To import a bank or e-wallet statement: kasvo_stage_import (CSV text, a text-based PDF as base64 with its password if locked, or rows you read yourself from a scanned PDF), review with kasvo_get_import, then kasvo_commit_import.
-- Net worth = account balances + assets (kasvo_list_assets) + money lent out − credit/loan balances − debts.
+- Net worth = account balances + assets (kasvo_list_assets) + money lent out − credit/loan balances − debts; kasvo_net_worth gives the parts and the monthly trend.
+- Expenses are needs or wants (a transaction's own tag, else its category's default); kasvo_allocation compares them with the 50/30/20 rule.
+- Amount inputs also accept sums such as "25rb+10rb×2".
 - Savings goals and debts: kasvo_list_goals, kasvo_list_debts. When a debt payment already appears as a transaction (e.g. imported), link it with kasvo_pay_debt's transactionId instead of booking it again.
 - Every change is recorded in the user's audit log under this client's name.`;
 
@@ -38,6 +41,7 @@ export function createKasvoServer(ctx: McpContext): McpServer {
     registerBudgetTools(server, ctx);
     registerPlanTools(server, ctx);
     registerAssetTools(server, ctx);
+    registerInsightTools(server, ctx);
   }
   if (ctx.scopes.includes("write")) registerWriteTools(server, ctx);
   if (ctx.scopes.includes("destructive")) registerDestructiveTools(server, ctx);
@@ -81,7 +85,7 @@ function registerPrompts(server: McpServer): void {
           role: "user",
           content: {
             type: "text",
-            text: `Give me a short review of my finances for ${month ?? "this month"}. Use kasvo_overview, kasvo_spending_breakdown, kasvo_compare_periods against the previous month, and kasvo_find_anomalies. Answer in my language with: total income and spending, the top 5 categories, the biggest changes versus last month and why, anything that looks unusual, and one concrete suggestion. Keep it under 250 words.`,
+            text: `Give me a short review of my finances for ${month ?? "this month"}. Use kasvo_overview, kasvo_spending_breakdown, kasvo_compare_periods against the previous month, kasvo_allocation, kasvo_net_worth, and kasvo_find_anomalies. Answer in my language with: total income and spending, the top 5 categories, the 50/30/20 split against its targets, how net worth moved, the biggest changes versus last month and why, anything that looks unusual, and one concrete suggestion. Keep it under 250 words.`,
           },
         },
       ],

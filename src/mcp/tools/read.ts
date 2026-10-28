@@ -85,7 +85,7 @@ export function registerReadTools(server: McpServer, ctx: McpContext): void {
     "kasvo_list_categories",
     {
       title: "List categories",
-      description: "Income and expense categories with id, parent, and how many transactions use each.",
+      description: "Income and expense categories with id, parent, icon, need/want default (used by the 50/30/20 view), and how many transactions use each.",
       inputSchema: { kind: z.enum(["INCOME", "EXPENSE"]).optional() },
       annotations: READ,
     },
@@ -96,7 +96,7 @@ export function registerReadTools(server: McpServer, ctx: McpContext): void {
         return {
           categories: rows
             .filter((r) => !kind || r.kind === kind)
-            .map((r) => ({ id: r.id, name: r.name, kind: r.kind, parent: r.parentId ? name.get(r.parentId) : null, transactionCount: r.transactionCount })),
+            .map((r) => ({ id: r.id, name: r.name, kind: r.kind, parent: r.parentId ? name.get(r.parentId) : null, icon: r.icon, color: r.color, necessity: r.necessity, transactionCount: r.transactionCount })),
         };
       }),
   );

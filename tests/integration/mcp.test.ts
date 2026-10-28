@@ -269,3 +269,33 @@ describe("mcp goals and debts", () => {
     expect(r.error).toMatchObject({ code: "NOT_FOUND", hint: "Call kasvo_list_debts for names and ids." });
   });
 });
+
+describe("mcp 50/30/20, net worth, and category styles", () => {
+  it("records with formulas and need/want, restyles a category, and reports the split and net worth", async () => {
+    const { client } = await setup(["write"]);
+    await call(client, "kasvo_record_transaction", { kind: "INCOME", amount: "10jt", account: "BCA Gaji", description: "Gaji" });
+    const coffee = await call(client, "kasvo_record_transaction", { kind: "EXPENSE", amount: "25rb+10rb×2", account: "BCA Gaji", description: "Kopi", category: "Makan & minum", necessity: "WANT" });
+    expect(coffee.id).toBeTruthy();
+    await call(client, "kasvo_record_transaction", { kind: "EXPENSE", amount: "1jt", account: "BCA Gaji", description: "Kos", category: "Rumah" });
+    await call(client, "kasvo_record_transaction", { kind: "EXPENSE", amount: "200rb", account: "BCA Gaji", description: "Lain", category: "Lain-lain" });
+
+    const styled = await call(client, "kasvo_update_category", { category: "Lain-lain", necessity: "WANT", icon: "sparkles", color: "purple" });
+    expect(styled).toMatchObject({ name: "Lain-lain", kind: "EXPENSE", icon: "sparkles", necessity: "WANT" });
+
+    const split = await call(client, "kasvo_allocation", {});
+    expect(split.needs.amount.value).toBe(1_000_000);
+    expect(split.wants.amount.value).toBe(45_000 + 200_000);
+    expect(split.savings.amount.value).toBe(10_000_000 - 1_245_000);
+    expect(split.unclassified.value).toBe(0);
+
+    const edited = await call(client, "kasvo_edit_transaction", { id: coffee.id, necessity: null });
+    expect(edited.updated).toBe(true);
+    expect((await call(client, "kasvo_allocation", {})).needs.amount.value).toBe(1_045_000);
+
+    const nw = await call(client, "kasvo_net_worth", { months: 3 });
+    expect(nw.trend).toHaveLength(3);
+    expect(nw.netWorth.value).toBe(2_000_000 + 10_000_000 - 1_245_000);
+    const cats = await call(client, "kasvo_list_categories", { kind: "EXPENSE" });
+    expect(cats.categories.find((c: { name: string }) => c.name === "Rumah")).toMatchObject({ necessity: "NEED", icon: "home" });
+  });
+});
