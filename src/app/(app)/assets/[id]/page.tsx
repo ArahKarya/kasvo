@@ -59,6 +59,31 @@ export default async function AssetPage({ params }: PageProps<"/assets/[id]">) {
         </div>
       </section>
 
+      <section className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-xl border border-border bg-surface p-4">
+          <p className="text-xs text-muted">{a.acquired}</p>
+          <p className="num mt-1 text-lg font-bold">{asset.purchaseValue !== null ? money(asset.purchaseValue) : "—"}</p>
+          <p className="mt-1 text-xs text-muted">
+            {asset.purchasedOn ? formatDay(asset.purchasedOn, il) : ""}
+            {asset.purchasedOn ? ` · ${fmt(a.ageMonths, { n: String(Math.max(0, Math.floor((Date.now() - new Date(asset.purchasedOn).getTime()) / 2629800000))) })}` : ""}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border bg-surface p-4">
+          <p className="text-xs text-muted">{a.marketValue}</p>
+          <p className="num mt-1 text-lg font-bold">{money(asset.value)}</p>
+          <p className="mt-1 text-xs text-muted">{asset.valuedOn ? fmt(a.valuedAsOf, { date: formatDay(asset.valuedOn, il) }) : a.notValued}</p>
+        </div>
+        <div className="rounded-xl border border-border bg-surface p-4">
+          <p className="text-xs text-muted">{asset.gain !== null && asset.gain > 0n ? a.gainLabel : a.lossLabel}</p>
+          <p className={`num mt-1 text-lg font-bold ${asset.gain === null || asset.gain === 0n ? "" : asset.gain > 0n ? "text-income" : "text-expense"}`}>
+            {asset.gain === null ? "—" : `${asset.gain > 0n ? "+" : ""}${money(asset.gain)}`}
+          </p>
+          <p className="mt-1 text-xs text-muted">
+            {asset.gain !== null && asset.purchaseValue ? fmt(a.pctOfCost, { pct: `${((Number(asset.gain) / Number(asset.purchaseValue)) * 100).toFixed(1)}%` }) : ""}
+          </p>
+        </div>
+      </section>
+
       <Card>
         <h2 className="mb-1 font-semibold">{a.updateValue}</h2>
         <p className="mb-4 text-xs text-muted">{a.valueHint}</p>

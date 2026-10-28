@@ -63,7 +63,7 @@ export default async function AssetsPage() {
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium">{x.name}</span>
                     <span className="block text-xs text-muted">
-                      {[a.kinds[x.kind], x.units ? `${x.units} unit` : null, x.valuedOn ? fmt(a.asOf, { date: formatDay(x.valuedOn, il) }) : null].filter(Boolean).join(" · ")}
+                      {[a.kinds[x.kind], x.units ? `${x.units} unit` : null, x.purchaseValue !== null ? `${a.acquired} ${money(x.purchaseValue)}` : null, x.valuedOn ? fmt(a.asOf, { date: formatDay(x.valuedOn, il) }) : null].filter(Boolean).join(" · ")}
                     </span>
                   </span>
                   <span className="text-right">
