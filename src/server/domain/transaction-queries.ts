@@ -127,3 +127,26 @@ export async function getTransaction(userId: string, id: string): Promise<Transa
   const row = await db.transaction.findFirst({ where: { id, userId, deletedAt: null }, include: INCLUDE });
   return row ? (await withCounterparties(userId, [row]))[0] : null;
 }
+
+export interface DayTotal {
+  income: bigint;
+  expense: bigint;
+}
+
+/**
+ * Income and spending per day for the given days under the same filters as the list, so a
+ * day header shows the whole day even when its rows span two pages. Transfers are left out.
+ */
+export async function dayTotals(userId: string, input: FindTransactionsInput, days: string[]): Promise<Map<string, DayTotal>> {
+  if (days.length === 0) return new Map();
+  const f = findTransactionsSchema.parse(input);
+  const scope = { AND: [whereFor(userId, f), { transferId: null }, { bookedOn: { in: days.map((d) => new Date(`${d}T00:00:00Z`)) } }] };
+  const [ins, outs] = await Promise.all([
+    db.transaction.groupBy({ by: ["bookedOn"], where: { AND: [scope, { amount: { gt: 0n } }] }, _sum: { amount: true } }),
+    db.transaction.groupBy({ by: ["bookedOn"], where: { AND: [scope, { amount: { lt: 0n } }] }, _sum: { amount: true } }),
+  ]);
+  const totals = new Map(days.map((d) => [d, { income: 0n, expense: 0n }]));
+  for (const g of ins) totals.get(g.bookedOn.toISOString().slice(0, 10))!.income = g._sum.amount ?? 0n;
+  for (const g of outs) totals.get(g.bookedOn.toISOString().slice(0, 10))!.expense = -(g._sum.amount ?? 0n);
+  return totals;
+}

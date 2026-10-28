@@ -42,7 +42,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             <LocaleSwitch locale={locale} t={t} />
             <AmountsToggle hidden={hidden} labels={eyeLabels} className="rounded-sm p-1.5 text-muted hover:bg-border/40 hover:text-text" />
           </div>
-          <ThemeSwitch initial={theme} labels={{ label: t.mobileNav.theme, light: t.mobileNav.themeLight, dark: t.mobileNav.themeDark, system: t.mobileNav.themeSystem }} />
+          <ThemeSwitch initial={theme} labels={{ label: t.mobileNav.theme, light: t.mobileNav.themeLight, dark: t.mobileNav.themeDark, system: t.mobileNav.themeSystem }} compact />
           <form action={logoutAction}>
             <button className="text-sm text-muted hover:text-text">{t.auth.logout}</button>
           </form>

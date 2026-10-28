@@ -3,7 +3,8 @@ import { db } from "@/server/db";
 import { createAccount } from "@/server/domain/accounts";
 import { createAsset, getAsset, listAssets, multiply, valueAsset } from "@/server/domain/assets";
 import { createDebt, payDebt } from "@/server/domain/debts";
-import { recordTransaction } from "@/server/domain/transactions";
+import { recordTransaction, recordTransfer } from "@/server/domain/transactions";
+import { dayTotals } from "@/server/domain/transaction-queries";
 import { allocation, netWorthTrend, spendingByDay, wealthOf } from "@/server/domain/wealth";
 import { categoryId, makeUser } from "./helpers";
 
@@ -99,5 +100,28 @@ describe("need/want on record", () => {
     expect((await db.transaction.findUniqueOrThrow({ where: { id } })).necessity).toBe("WANT");
     expect(await db.transaction.count({ where: { userId: actor.userId, necessity: { not: null } } })).toBe(1);
     expect(await allocation(actor.userId, "2026-10")).toMatchObject({ needs: 0n, wants: 45_000n });
+  });
+});
+
+describe("day totals", () => {
+  it("sums whole days under the list's filters and leaves transfers out", async () => {
+    const actor = await makeUser();
+    const { id: bca } = await createAccount(actor, { name: "BCA", type: "BANK", openingBalance: "1jt", openingDate: "2026-09-01" });
+    const { id: gopay } = await createAccount(actor, { name: "GoPay", type: "EWALLET", openingDate: "2026-09-01" });
+    const add = (kind: "INCOME" | "EXPENSE", amount: string, bookedOn: string, accountId = bca) => recordTransaction(actor, { accountId, kind, amount, bookedOn, description: "x" });
+    await add("EXPENSE", "20rb", "2026-10-27");
+    await add("EXPENSE", "30rb", "2026-10-27", gopay);
+    await add("INCOME", "100rb", "2026-10-27");
+    await add("EXPENSE", "5rb", "2026-10-26");
+    await recordTransfer(actor, { fromAccountId: bca, toAccountId: gopay, amount: "200rb", bookedOn: "2026-10-27" });
+
+    const all = await dayTotals(actor.userId, {}, ["2026-10-27", "2026-10-26", "2026-10-25"]);
+    expect(Object.fromEntries(all)).toEqual({
+      "2026-10-27": { income: 100_000n, expense: 50_000n },
+      "2026-10-26": { income: 0n, expense: 5_000n },
+      "2026-10-25": { income: 0n, expense: 0n },
+    });
+    const onlyBca = await dayTotals(actor.userId, { accountId: bca }, ["2026-10-27"]);
+    expect(onlyBca.get("2026-10-27")).toEqual({ income: 100_000n, expense: 20_000n });
   });
 });

@@ -25,10 +25,12 @@ function apply(next: ThemeChoice): void {
 interface ThemeSwitchProps {
   initial: ThemeChoice;
   labels: { label: string; light: string; dark: string; system: string };
+  /** Icons only, for the narrow sidebar. */
+  compact?: boolean;
 }
 
 /** Light / dark / follow the system, as three small square buttons. */
-export function ThemeSwitch({ initial, labels }: ThemeSwitchProps) {
+export function ThemeSwitch({ initial, labels, compact = false }: ThemeSwitchProps) {
   const theme = useSyncExternalStore(subscribe, read, () => initial);
   const options = [
     { value: "light", label: labels.light, Icon: Sun },
@@ -48,7 +50,7 @@ export function ThemeSwitch({ initial, labels }: ThemeSwitchProps) {
           className="inline-flex items-center gap-1 rounded-[4px] px-2 py-1 text-xs text-muted hover:text-text aria-checked:bg-accent-soft aria-checked:font-semibold aria-checked:text-accent"
         >
           <Icon size={14} aria-hidden="true" />
-          <span className="sr-only sm:not-sr-only">{label}</span>
+          <span className={compact ? "sr-only" : ""}>{label}</span>
         </button>
       ))}
     </div>

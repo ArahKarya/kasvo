@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeftRight, Bot } from "lucide-react";
 import { CategoryIcon } from "./category-icons";
-import type { TransactionRow } from "@/server/domain/transaction-queries";
+import type { DayTotal, TransactionRow } from "@/server/domain/transaction-queries";
 import { formatMoney } from "@/server/domain/money";
 import { fmt, intlLocale, type Dictionary, type Locale } from "@/i18n/dictionaries";
 import { Amount } from "./ui";
@@ -10,10 +10,14 @@ interface TransactionListProps {
   items: TransactionRow[];
   t: Dictionary;
   locale: Locale;
+  /** Whole-day income and spending for the day headers. */
+  totals?: Map<string, DayTotal>;
+  currency?: string;
 }
 
 /** Rows grouped under their booking date, newest first. */
-export function TransactionList({ items, t, locale }: TransactionListProps) {
+export function TransactionList({ items, t, locale, totals, currency = "IDR" }: TransactionListProps) {
+  const money = (v: bigint) => formatMoney(v, currency, intlLocale(locale));
   const dayLabel = new Intl.DateTimeFormat(intlLocale(locale), { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
   const days = [...new Set(items.map((i) => i.bookedOn.toISOString().slice(0, 10)))];
 
@@ -21,7 +25,15 @@ export function TransactionList({ items, t, locale }: TransactionListProps) {
     <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
       {days.map((day) => (
         <section key={day}>
-          <h3 className="bg-surface-2 px-4 py-1.5 text-xs font-semibold text-muted">{dayLabel.format(new Date(`${day}T00:00:00Z`))}</h3>
+          <h3 className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 bg-surface-2 px-4 py-2 text-xs">
+            <span className="font-semibold text-text">{dayLabel.format(new Date(`${day}T00:00:00Z`))}</span>
+            {totals?.get(day) && (
+              <span className="num flex gap-3 font-medium">
+                {totals.get(day)!.income > 0n && <span className="text-income">+{money(totals.get(day)!.income)}</span>}
+                {totals.get(day)!.expense > 0n && <span className="text-expense">−{money(totals.get(day)!.expense)}</span>}
+              </span>
+            )}
+          </h3>
           <ul className="divide-y divide-border">
             {items
               .filter((i) => i.bookedOn.toISOString().startsWith(day))
