@@ -35,7 +35,7 @@ export default async function GoalsPage() {
       <p className="-mt-3 text-sm text-muted">{g.intro}</p>
 
       {active.length === 0 ? (
-        <p className="rounded-sm border border-dashed border-border bg-surface p-4 text-sm text-muted">{g.empty}</p>
+        <p className="rounded-xl border border-dashed border-border bg-surface p-4 text-sm text-muted">{g.empty}</p>
       ) : (
         <ul className="space-y-3">
           {active.map((goal) => (
@@ -57,7 +57,7 @@ export default async function GoalsPage() {
       {archived.length > 0 && (
         <section className="space-y-2">
           <h2 className="text-sm font-semibold text-muted">{g.archivedList}</h2>
-          <ul className="divide-y divide-border rounded-sm border border-border bg-surface text-sm">
+          <ul className="divide-y divide-border rounded-xl border border-border bg-surface text-sm">
             {archived.map((a) => (
               <li key={a.id} className="flex justify-between px-4 py-2">
                 <Link href={`/goals/${a.id}`} className="hover:underline">

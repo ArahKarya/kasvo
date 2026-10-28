@@ -21,7 +21,8 @@ export type DomainErrorReason =
   | "pdf_password_wrong"
   | "pdf_unreadable"
   | "pdf_no_text"
-  | "pdf_unrecognised";
+  | "pdf_unrecognised"
+  | "asset_units";
 
 /** An error the caller can show or act on. `hint` tells an agent what to try next. */
 export class DomainError extends Error {

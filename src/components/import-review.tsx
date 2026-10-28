@@ -38,7 +38,7 @@ export function ImportReview({ action, rows, categories, labels }: ImportReviewP
 
   return (
     <ActionForm action={action} submit={labels.commit.replace("{n}", String(included.size))}>
-      <div className="overflow-x-auto rounded-sm border border-border bg-surface">
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <table className="w-full text-sm">
           <thead className="border-b border-border text-left text-xs text-muted">
             <tr>

@@ -35,6 +35,7 @@ model User {
   budgets      Budget[]
   goals        Goal[]
   debts        Debt[]
+  assets       Asset[]
 
   @@map("users")
 }
@@ -95,6 +96,10 @@ model Category {
   kind       CategoryKind
   parentId   String?
   color      String?
+  /// Icon key from the app's curated set (see src/components/category-icons.ts).
+  icon       String?
+  /// Default need/want for its transactions, used by the 50/30/20 view.
+  necessity  Necessity?
   archivedAt DateTime?
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -107,6 +112,12 @@ model Category {
 
   @@unique([userId, kind, name])
   @@map("categories")
+}
+
+/// Needs and wants for the 50/30/20 split; savings is what income leaves over.
+enum Necessity {
+  NEED
+  WANT
 }
 
 enum TransactionSource {
@@ -125,6 +136,8 @@ model Transaction {
   payee       String?
   note        String?
   categoryId  String?
+  /// Overrides the category's need/want for this one transaction.
+  necessity   Necessity?
   transferId  String?
   importBatchId String?
   fingerprint String
@@ -410,4 +423,55 @@ model DebtPayment {
 
   @@index([debtId, paidOn])
   @@map("debt_payments")
+}
+
+enum AssetKind {
+  PROPERTY
+  VEHICLE
+  GOLD
+  STOCK
+  FUND
+  CRYPTO
+  DEPOSIT
+  OTHER
+}
+
+/// Something of value outside the accounts: a house, a car, gold, stocks, funds. Its value is the
+/// latest valuation, or the purchase value until one is recorded.
+model Asset {
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  kind          AssetKind
+  /// Grams of gold, shares, fund units, coins; null for a house or car.
+  units         Decimal?  @db.Decimal(24, 8)
+  /// What was paid in total.
+  purchaseValue BigInt?
+  purchasedOn   DateTime? @db.Date
+  note          String?
+  archivedAt    DateTime?
+  createdAt     DateTime  @default(now())
+
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  valuations AssetValuation[]
+
+  @@unique([userId, name])
+  @@map("assets")
+}
+
+/// The asset's total value on a day; for unit-based assets also the price per unit.
+model AssetValuation {
+  id        String   @id @default(cuid())
+  assetId   String
+  userId    String
+  valuedOn  DateTime @db.Date
+  value     BigInt
+  unitPrice BigInt?
+  note      String?
+  createdAt DateTime @default(now())
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId, valuedOn])
+  @@map("asset_valuations")
 }

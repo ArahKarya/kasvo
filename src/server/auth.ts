@@ -72,7 +72,7 @@ export async function register(input: {
           locale: input.locale,
           timezone: process.env.APP_TIMEZONE ?? "Asia/Jakarta",
           categories: {
-            create: DEFAULT_CATEGORIES.map((c) => ({ kind: c.kind, name: c[input.locale] })),
+            create: DEFAULT_CATEGORIES.map((c) => ({ kind: c.kind, name: c[input.locale], icon: c.icon, color: c.color, necessity: c.necessity })),
           },
         },
       });

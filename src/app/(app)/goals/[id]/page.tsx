@@ -48,7 +48,7 @@ export default async function GoalPage({ params }: PageProps<"/goals/[id]">) {
       {goal.note && <p className="text-sm text-muted">{goal.note}</p>}
 
       {goal.accountId ? (
-        <p className="rounded-sm border border-border bg-surface p-4 text-sm">
+        <p className="rounded-xl border border-border bg-surface p-4 text-sm">
           {fmt(g.linkedHint, { account: goal.accountName ?? "" })}{" "}
           <Link href={`/accounts/${goal.accountId}`} className="text-accent hover:underline">
             {goal.accountName}
@@ -78,7 +78,7 @@ export default async function GoalPage({ params }: PageProps<"/goals/[id]">) {
             {goal.contributions.length === 0 ? (
               <p className="text-sm text-muted">{g.noContributions}</p>
             ) : (
-              <ul className="divide-y divide-border rounded-sm border border-border bg-surface text-sm">
+              <ul className="divide-y divide-border rounded-xl border border-border bg-surface text-sm">
                 {goal.contributions.map((c) => (
                   <li key={c.id} className="flex items-center justify-between gap-3 px-4 py-2">
                     <span className="text-muted">{date(c.bookedOn)}</span>

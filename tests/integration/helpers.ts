@@ -10,7 +10,7 @@ export async function makeUser(): Promise<Actor> {
       email: `${randomUUID()}@kasvo.test`,
       name: "Test",
       passwordHash: "x",
-      categories: { create: DEFAULT_CATEGORIES.map((c) => ({ kind: c.kind, name: c.id })) },
+      categories: { create: DEFAULT_CATEGORIES.map((c) => ({ kind: c.kind, name: c.id, icon: c.icon, color: c.color, necessity: c.necessity })) },
     },
   });
   return userActor(user.id);

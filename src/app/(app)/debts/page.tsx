@@ -51,7 +51,7 @@ export default async function DebtsPage() {
       <PageTitle>{d.title}</PageTitle>
       <p className="-mt-3 text-sm text-muted">{d.intro}</p>
 
-      {open.length === 0 && <p className="rounded-sm border border-dashed border-border bg-surface p-4 text-sm text-muted">{d.empty}</p>}
+      {open.length === 0 && <p className="rounded-xl border border-dashed border-border bg-surface p-4 text-sm text-muted">{d.empty}</p>}
       {group(d.borrowed, open.filter((r) => r.direction === "BORROWED"))}
       {group(d.lent, open.filter((r) => r.direction === "LENT"))}
 
@@ -68,7 +68,7 @@ export default async function DebtsPage() {
       {closed.length > 0 && (
         <section className="space-y-2">
           <h2 className="text-sm font-semibold text-muted">{d.settledList}</h2>
-          <ul className="divide-y divide-border rounded-sm border border-border bg-surface text-sm">
+          <ul className="divide-y divide-border rounded-xl border border-border bg-surface text-sm">
             {closed.map((c) => (
               <li key={c.id} className="flex justify-between px-4 py-2">
                 <Link href={`/debts/${c.id}`} className="hover:underline">

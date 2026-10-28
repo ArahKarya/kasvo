@@ -35,7 +35,7 @@ export function AuthForm({ action, fields, submit, switchText, switchLabel, swit
             autoComplete={f.autoComplete}
             minLength={f.minLength}
             required
-            className="w-full rounded-sm border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+            className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
           />
           {f.hint && <span className="block text-xs text-muted">{f.hint}</span>}
         </label>

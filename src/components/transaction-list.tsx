@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Bot } from "lucide-react";
+import { ArrowLeftRight, Bot } from "lucide-react";
+import { CategoryIcon } from "./category-icons";
 import type { TransactionRow } from "@/server/domain/transaction-queries";
 import { formatMoney } from "@/server/domain/money";
 import { fmt, intlLocale, type Dictionary, type Locale } from "@/i18n/dictionaries";
@@ -17,10 +18,10 @@ export function TransactionList({ items, t, locale }: TransactionListProps) {
   const days = [...new Set(items.map((i) => i.bookedOn.toISOString().slice(0, 10)))];
 
   return (
-    <div className="divide-y divide-border rounded-sm border border-border bg-surface">
+    <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
       {days.map((day) => (
         <section key={day}>
-          <h3 className="bg-bg/60 px-4 py-1.5 text-xs font-semibold text-muted">{dayLabel.format(new Date(`${day}T00:00:00Z`))}</h3>
+          <h3 className="bg-surface-2 px-4 py-1.5 text-xs font-semibold text-muted">{dayLabel.format(new Date(`${day}T00:00:00Z`))}</h3>
           <ul className="divide-y divide-border">
             {items
               .filter((i) => i.bookedOn.toISOString().startsWith(day))
@@ -35,7 +36,14 @@ export function TransactionList({ items, t, locale }: TransactionListProps) {
                 ].filter(Boolean);
                 return (
                   <li key={i.id}>
-                    <Link href={`/transactions/${i.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-border/30">
+                    <Link href={`/transactions/${i.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-border/30">
+                      {isTransfer ? (
+                        <span aria-hidden="true" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-muted">
+                          <ArrowLeftRight size={18} />
+                        </span>
+                      ) : (
+                        <CategoryIcon icon={i.category?.icon} color={i.category?.color} />
+                      )}
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">{i.description}</p>
                         <p className="flex items-center gap-1.5 truncate text-xs text-muted">

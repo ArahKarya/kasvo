@@ -60,7 +60,7 @@ export default async function BudgetsPage({ searchParams }: PageProps<"/budgets"
           [b.totalSpending, money(status.totalSpending)],
           [t.reports.period, timeNote],
         ].map(([label, value]) => (
-          <div key={label} className="rounded-sm border border-border bg-surface px-3 py-2">
+          <div key={label} className="rounded-xl border border-border bg-surface px-3 py-2">
             <dt className="text-xs text-muted">{label}</dt>
             <dd className="num font-bold">{value}</dd>
           </div>
@@ -77,7 +77,7 @@ export default async function BudgetsPage({ searchParams }: PageProps<"/budgets"
       ) : (
         <ul className="space-y-3">
           {status.lines.map((l) => (
-            <li key={l.categoryId} className="rounded-sm border border-border bg-surface p-4">
+            <li key={l.categoryId} className="rounded-xl border border-border bg-surface p-4">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <Link href={`/transactions?category=${l.categoryId}&month=${month}`} className="font-medium hover:underline">
                   {l.name}
@@ -136,7 +136,7 @@ export default async function BudgetsPage({ searchParams }: PageProps<"/budgets"
       {status.unbudgeted.length > 0 && (
         <section className="space-y-2">
           <h2 className="font-semibold">{b.unbudgeted}</h2>
-          <ul className="divide-y divide-border rounded-sm border border-border bg-surface text-sm">
+          <ul className="divide-y divide-border rounded-xl border border-border bg-surface text-sm">
             {status.unbudgeted.map((u) => (
               <li key={u.categoryId ?? "none"} className="flex justify-between px-4 py-2">
                 <span>{u.categoryId ? u.name : t.tx.uncategorized}</span>

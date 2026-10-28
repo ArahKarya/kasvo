@@ -104,7 +104,7 @@ export function CashflowChart({ points, locale, labels, height = 220 }: Cashflow
         {shown && active !== null && (
           <div
             role="status"
-            className="pointer-events-none absolute top-2 z-10 min-w-44 rounded-sm border border-border bg-surface px-3 py-2 text-xs shadow-sm"
+            className="pointer-events-none absolute top-2 z-10 min-w-44 rounded-xl border border-border bg-surface px-3 py-2 text-xs shadow-sm"
             style={{ left: `clamp(0px, calc(${((PAD.left + slot * active + slot / 2) / W) * 100}% - 88px), calc(100% - 180px))` }}
           >
             <p className="mb-1 text-muted">{shown.title}</p>

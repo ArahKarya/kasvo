@@ -9,9 +9,10 @@ import * as settings from "./messages/settings";
 import * as imports from "./messages/imports";
 import * as insights from "./messages/insights";
 import * as plans from "./messages/plans";
+import * as home from "./messages/home";
 
-const en = { ...core.en, ...ledger.en, ...settings.en, ...imports.en, ...insights.en, ...plans.en };
-const id: typeof en = { ...core.id, ...ledger.id, ...settings.id, ...imports.id, ...insights.id, ...plans.id };
+const en = { ...core.en, ...ledger.en, ...settings.en, ...imports.en, ...insights.en, ...plans.en, ...home.en };
+const id: typeof en = { ...core.id, ...ledger.id, ...settings.id, ...imports.id, ...insights.id, ...plans.id, ...home.id };
 
 export type Dictionary = typeof en;
 

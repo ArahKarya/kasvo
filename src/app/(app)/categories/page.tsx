@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { archiveCategoryAction, createCategoryAction, renameCategoryAction } from "@/app/actions/ledger";
+import { archiveCategoryAction, createCategoryAction, updateCategoryAction } from "@/app/actions/ledger";
+import { CATEGORY_COLORS, CATEGORY_ICONS, CategoryIcon } from "@/components/category-icons";
 import { ActionForm } from "@/components/action-form";
 import { Disclosure } from "@/components/disclosure";
 import { buttonClass, Card, Field, Input, PageTitle, Select } from "@/components/ui";
@@ -12,15 +13,57 @@ import { fmt, type Dictionary } from "@/i18n/dictionaries";
 export const metadata: Metadata = { title: "Categories" };
 
 function CategoryItem({ c, t, child }: { c: CategoryRow; t: Dictionary; child?: boolean }) {
+  const ct = t.categories;
+  const swatch = "flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border peer-checked:border-accent peer-checked:ring-2 peer-checked:ring-accent/30 peer-focus-visible:ring-2 peer-focus-visible:ring-accent";
   return (
-    <li className={`flex flex-wrap items-center gap-2 px-4 py-2 ${child ? "pl-9" : ""}`}>
+    <li className={`flex flex-wrap items-center gap-2 px-4 py-2.5 ${child ? "pl-10" : ""}`}>
       <details className="min-w-0 flex-1">
-        <summary className="cursor-pointer list-none">
-          <span className={c.archivedAt ? "text-muted line-through" : "font-medium"}>{c.name}</span>
-          <span className="ml-2 text-xs text-muted">{fmt(t.categories.used, { n: c.transactionCount })}</span>
+        <summary className="flex cursor-pointer list-none items-center gap-3">
+          <CategoryIcon icon={c.icon} color={c.color} size={32} />
+          <span className="min-w-0">
+            <span className={`block truncate ${c.archivedAt ? "text-muted line-through" : "font-medium"}`}>{c.name}</span>
+            <span className="block text-xs text-muted">
+              {[fmt(ct.used, { n: c.transactionCount }), c.necessity ? ct.necessity[c.necessity] : null].filter(Boolean).join(" · ")}
+            </span>
+          </span>
         </summary>
-        <ActionForm action={renameCategoryAction.bind(null, c.id)} submit={t.categories.rename} className="mt-2 max-w-sm">
-          <Input name="name" defaultValue={c.name} required maxLength={60} aria-label={t.categories.name} />
+        <ActionForm action={updateCategoryAction.bind(null, c.id)} submit={t.common.save} success={t.common.saved} className="mt-3 space-y-4">
+          <Input name="name" defaultValue={c.name} required maxLength={60} aria-label={ct.name} className="max-w-sm" />
+          <fieldset>
+            <legend className="mb-1.5 text-sm font-medium">{ct.icon}</legend>
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(CATEGORY_ICONS).map(([key, Icon]) => (
+                <label key={key}>
+                  <input type="radio" name="icon" value={key} defaultChecked={(c.icon ?? "tag") === key} className="peer sr-only" />
+                  <span className={swatch} title={key}>
+                    <Icon size={17} aria-label={key} />
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend className="mb-1.5 text-sm font-medium">{ct.color}</legend>
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(CATEGORY_COLORS).map(([key, hex]) => (
+                <label key={key}>
+                  <input type="radio" name="color" value={key} defaultChecked={(c.color ?? "slate") === key} className="peer sr-only" />
+                  <span className={swatch} title={key}>
+                    <span className="h-5 w-5 rounded-md" style={{ background: hex }} aria-label={key} />
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          {c.kind === "EXPENSE" && (
+            <Field label={ct.necessityLabel} hint={ct.necessityHint} className="max-w-sm">
+              <Select name="necessity" defaultValue={c.necessity ?? ""}>
+                <option value="">{ct.necessity.NONE}</option>
+                <option value="NEED">{ct.necessity.NEED}</option>
+                <option value="WANT">{ct.necessity.WANT}</option>
+              </Select>
+            </Field>
+          )}
         </ActionForm>
       </details>
       <form action={archiveCategoryAction}>

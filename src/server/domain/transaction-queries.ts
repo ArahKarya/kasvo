@@ -27,7 +27,7 @@ export interface TransactionRow {
   payee: string | null;
   note: string | null;
   account: { id: string; name: string; currency: string };
-  category: { id: string; name: string } | null;
+  category: { id: string; name: string; icon: string | null; color: string | null } | null;
   transferId: string | null;
   /** The other account of a transfer. */
   counterparty: { id: string; name: string } | null;
@@ -93,7 +93,7 @@ export async function findTransactions(userId: string, input: FindTransactionsIn
 
 const INCLUDE = {
   account: { select: { id: true, name: true, currency: true } },
-  category: { select: { id: true, name: true } },
+  category: { select: { id: true, name: true, icon: true, color: true } },
 } as const;
 
 type RowWithRelations = Prisma.TransactionGetPayload<{ include: typeof INCLUDE }>;

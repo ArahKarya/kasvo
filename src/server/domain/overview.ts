@@ -1,9 +1,13 @@
 import "server-only";
 
 import { db } from "@/server/db";
+import { todayIn } from "./dates";
+import { wealthOf, type Wealth } from "./wealth";
 
 export interface Overview {
+  /** Assets − liabilities; see `Wealth`. */
   netWorth: bigint;
+  wealth: Wealth;
   incomeThisMonth: bigint;
   expenseThisMonth: bigint;
   accountCount: number;
@@ -22,12 +26,10 @@ function monthBounds(now: Date, timeZone: string): { start: Date; end: Date } {
 /** Headline numbers for the dashboard. Transfers are excluded from income and spending. */
 export async function getOverview(userId: string, timeZone: string): Promise<Overview> {
   const { start, end } = monthBounds(new Date(), timeZone);
-  const live = { userId, deletedAt: null };
-  const thisMonth = { ...live, transferId: null, bookedOn: { gte: start, lt: end } };
+  const thisMonth = { userId, deletedAt: null, transferId: null, bookedOn: { gte: start, lt: end } };
 
-  const [opening, movement, income, expense, accountCount, categoryCount] = await Promise.all([
-    db.account.aggregate({ where: { userId, archivedAt: null }, _sum: { openingBalance: true } }),
-    db.transaction.aggregate({ where: { ...live, account: { archivedAt: null } }, _sum: { amount: true } }),
+  const [wealth, income, expense, accountCount, categoryCount] = await Promise.all([
+    wealthOf(userId, todayIn(timeZone)),
     db.transaction.aggregate({ where: { ...thisMonth, amount: { gt: 0 } }, _sum: { amount: true } }),
     db.transaction.aggregate({ where: { ...thisMonth, amount: { lt: 0 } }, _sum: { amount: true } }),
     db.account.count({ where: { userId, archivedAt: null } }),
@@ -35,7 +37,8 @@ export async function getOverview(userId: string, timeZone: string): Promise<Ove
   ]);
 
   return {
-    netWorth: (opening._sum.openingBalance ?? 0n) + (movement._sum.amount ?? 0n),
+    netWorth: wealth.netWorth,
+    wealth,
     incomeThisMonth: income._sum.amount ?? 0n,
     expenseThisMonth: -(expense._sum.amount ?? 0n),
     accountCount,

@@ -1,3 +1,6 @@
+import { cookies } from "next/headers";
+import { AmountsToggle } from "@/components/amounts-toggle";
+import { HIDE_AMOUNTS_COOKIE } from "@/components/amounts-cookie";
 import { Logo } from "@/components/logo";
 import { LocaleSwitch } from "@/components/locale-switch";
 import { MobileNav } from "@/components/mobile-nav";
@@ -9,17 +12,23 @@ import { getDictionary } from "@/i18n/server";
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
   const { t, locale } = await getDictionary();
+  const hidden = (await cookies()).get(HIDE_AMOUNTS_COOKIE)?.value === "1";
+  const eyeLabels = { hide: t.mobileNav.hideAmounts, show: t.mobileNav.showAmounts };
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
-      <header className="sticky top-0 z-20 flex items-center border-b border-border bg-surface px-4 pt-[env(safe-area-inset-top)] md:hidden">
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-surface px-4 pt-[env(safe-area-inset-top)] md:hidden">
         <Logo className="py-3 text-base" />
+        <AmountsToggle hidden={hidden} labels={eyeLabels} className="rounded-sm p-2 text-muted hover:bg-border/40 hover:text-text" />
       </header>
       <aside className="hidden flex-col gap-4 border-r border-border bg-surface p-4 md:flex md:w-56">
         <Logo className="text-lg" />
         <Sidebar labels={t.nav} />
         <div className="mt-auto space-y-3 border-t border-border pt-4">
           <p className="truncate text-xs text-muted">{user.email}</p>
-          <LocaleSwitch locale={locale} t={t} />
+          <div className="flex items-center justify-between gap-2">
+            <LocaleSwitch locale={locale} t={t} />
+            <AmountsToggle hidden={hidden} labels={eyeLabels} className="rounded-sm p-1.5 text-muted hover:bg-border/40 hover:text-text" />
+          </div>
           <form action={logoutAction}>
             <button className="text-sm text-muted hover:text-text">{t.auth.logout}</button>
           </form>

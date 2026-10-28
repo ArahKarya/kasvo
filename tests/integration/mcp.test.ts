@@ -249,7 +249,8 @@ describe("mcp goals and debts", () => {
 
     const paid = await call(client, "kasvo_pay_debt", { debt: "Paylater", account: "BCA Gaji" });
     expect(paid).toMatchObject({ amount: { value: 1_000_000 }, outstanding: { value: 2_000_000 }, next: "2099-02-10" });
-    expect((await call(client, "kasvo_overview")).netWorth.value).toBe(1_000_000);
+    // Paying a debt moves money, it does not change net worth: 1jt cash − 2jt still owed.
+    expect((await call(client, "kasvo_overview")).netWorth.value).toBe(-1_000_000);
 
     const detail = await call(client, "kasvo_get_debt", { debt: "Paylater" });
     expect(detail.schedule.map((l: { status: string }) => l.status)).toEqual(["paid", "upcoming", "upcoming"]);
@@ -259,7 +260,7 @@ describe("mcp goals and debts", () => {
     const done = await call(client, "kasvo_confirm", { pendingId: pending.pendingId });
     expect(done).toMatchObject({ transactionsDeleted: 1 });
     expect((await call(client, "kasvo_list_debts")).debts[0].instalments).toBe("0/3 paid");
-    expect((await call(client, "kasvo_overview")).netWorth.value).toBe(2_000_000);
+    expect((await call(client, "kasvo_overview")).netWorth.value).toBe(-1_000_000);
   });
 
   it("explains a missing debt instead of failing silently", async () => {

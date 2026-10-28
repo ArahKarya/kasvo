@@ -1,24 +1,36 @@
 @import "tailwindcss";
 
 /*
- * Kasvo tokens. Calm ledger look: warm paper or graphite, one deep-green accent,
- * income/expense colours only on numbers. Controls use a 4px radius, never pills.
+ * Kasvo tokens. Brand green (#196C4E, from the K icon) with the icon's amber dot as a second
+ * accent. Cards are softly rounded; buttons, chips, tabs, and inputs keep a small radius (no pills).
+ * Income/expense colours only on numbers.
  */
 :root {
-  --bg: #f7f6f3;
+  --bg: #f3f6f4;
   --surface: #ffffff;
-  --border: #e4e2dc;
-  --text: #1c1b19;
-  --muted: #6b6860;
-  --accent: #1f6f50;
+  --surface-2: #f7f9f8;
+  --border: #e1e8e3;
+  --text: #15201a;
+  --muted: #5d6b63;
+  --accent: #196c4e;
+  --accent-strong: #0f4a35;
+  --accent-soft: #e5f1eb;
   --accent-text: #ffffff;
+  --gold: #f4ae2a;
+  --gold-soft: #fdf3dc;
   --income: #1f7a4d;
   --expense: #b4412f;
+  --income-soft: #e8f4ed;
+  --expense-soft: #fbece9;
   --danger: #b4412f;
   /* Chart marks only; text keeps --income/--expense. Validated with the dataviz palette checker. */
   --chart-income: #008a72;
   --chart-expense: #c94f1c;
   --chart-bar: #008a72;
+  /* 50/30/20 needs / wants / savings. Validated with the dataviz palette checker (labels always shown). */
+  --alloc-needs: #2563c9;
+  --alloc-wants: #e08a1e;
+  --alloc-savings: #0f8a5f;
   /* Status: always shown with an icon and a label, never colour alone. */
   --status-good: #0ca30c;
   --status-warning: #fab219;
@@ -27,19 +39,29 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #111312;
-    --surface: #191c1a;
-    --border: #2a2f2c;
-    --text: #e9ebe8;
-    --muted: #9aa39d;
+    --bg: #0b100d;
+    --surface: #131a16;
+    --surface-2: #18211c;
+    --border: #233029;
+    --text: #e6ede9;
+    --muted: #91a198;
     --accent: #3fae80;
-    --accent-text: #0b1410;
+    --accent-strong: #1d7a55;
+    --accent-soft: #17291f;
+    --accent-text: #08130d;
+    --gold: #f6b93f;
+    --gold-soft: #2c2412;
     --income: #4cc38a;
     --expense: #ef7a64;
+    --income-soft: #13261b;
+    --expense-soft: #2a1714;
     --danger: #ef7a64;
     --chart-income: #1f9e8a;
     --chart-expense: #e8613c;
     --chart-bar: #1f9e8a;
+    --alloc-needs: #5b93f2;
+    --alloc-wants: #cf7f26;
+    --alloc-savings: #22a074;
   }
 }
 
@@ -51,6 +73,13 @@
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent-text: var(--accent-text);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-surface-2: var(--surface-2);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-income-soft: var(--income-soft);
+  --color-expense-soft: var(--expense-soft);
   --color-income: var(--income);
   --color-expense: var(--expense);
   --color-danger: var(--danger);
@@ -62,7 +91,11 @@
   --color-status-critical: var(--status-critical);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
-  --radius-sm: 4px;
+  /* Controls (buttons, inputs, chips, tabs). */
+  --radius-sm: 6px;
+  /* Cards and sheets. */
+  --radius-xl: 14px;
+  --radius-2xl: 20px;
 }
 
 body {
@@ -72,4 +105,10 @@ body {
 
 .num {
   font-variant-numeric: tabular-nums;
+}
+
+/* "Hide balances": every number is blurred until the eye is toggled back (see AmountsToggle). */
+[data-hide-amounts] .num {
+  filter: blur(7px);
+  user-select: none;
 }

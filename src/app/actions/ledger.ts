@@ -7,7 +7,7 @@ import { requireUser } from "@/server/auth";
 import { userActor, type Actor } from "@/server/domain/actor";
 import { DomainError } from "@/server/domain/errors";
 import { createAccount, setAccountArchived, updateAccount, type CreateAccountInput } from "@/server/domain/accounts";
-import { createCategory, renameCategory, setCategoryArchived, type CreateCategoryInput } from "@/server/domain/categories";
+import { createCategory, renameCategory, setCategoryArchived, styleCategory, type CreateCategoryInput } from "@/server/domain/categories";
 import { deleteTransactions, editTransaction, recordTransaction, recordTransfer } from "@/server/domain/transactions";
 import { getDictionary } from "@/i18n/server";
 import { fmt, type Dictionary } from "@/i18n/dictionaries";
@@ -104,8 +104,17 @@ export async function createCategoryAction(_prev: FormState, form: FormData): Pr
   );
 }
 
-export async function renameCategoryAction(id: string, _prev: FormState, form: FormData): Promise<FormState> {
-  return perform((actor) => renameCategory(actor, id, text(form, "name") ?? ""), LEDGER_PATHS);
+/** Name, icon, colour, and need/want in one save. */
+export async function updateCategoryAction(id: string, _prev: FormState, form: FormData): Promise<FormState> {
+  const necessity = text(form, "necessity");
+  return perform(async (actor) => {
+    await renameCategory(actor, id, text(form, "name") ?? "");
+    await styleCategory(actor, id, {
+      icon: text(form, "icon") ?? null,
+      color: text(form, "color") ?? null,
+      ...(form.has("necessity") ? { necessity: necessity === "NEED" || necessity === "WANT" ? necessity : null } : {}),
+    });
+  }, LEDGER_PATHS);
 }
 
 export async function archiveCategoryAction(form: FormData): Promise<void> {

@@ -2,7 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 import { db } from "@/server/db";
-import type { CategoryKind } from "@/generated/prisma/client";
+import type { CategoryKind, Necessity } from "@/generated/prisma/client";
 import type { Actor } from "./actor";
 import { audit } from "./audit";
 import { DomainError, notFound } from "./errors";
@@ -23,6 +23,9 @@ export interface CategoryRow {
   name: string;
   kind: CategoryKind;
   parentId: string | null;
+  icon: string | null;
+  color: string | null;
+  necessity: Necessity | null;
   archivedAt: Date | null;
   transactionCount: number;
 }
@@ -38,6 +41,9 @@ export async function listCategories(userId: string, opts: { includeArchived?: b
     name: c.name,
     kind: c.kind,
     parentId: c.parentId,
+    icon: c.icon,
+    color: c.color,
+    necessity: c.necessity,
     archivedAt: c.archivedAt,
     transactionCount: _count.transactions,
   }));
@@ -85,5 +91,24 @@ export async function setCategoryArchived(actor: Actor, id: string, archived: bo
   await db.$transaction(async (tx) => {
     const after = await tx.category.update({ where: { id }, data: { archivedAt: archived ? new Date() : null } });
     await audit(tx, actor, { action: archived ? "category.archive" : "category.unarchive", entity: "Category", entityId: id, before, after });
+  });
+}
+
+export const styleCategorySchema = z.object({
+  icon: z.string().max(40).nullable().optional(),
+  color: z.string().max(20).nullable().optional(),
+  /** Default need/want for this category's spending; null leaves it unmarked. */
+  necessity: z.enum(["NEED", "WANT"]).nullable().optional(),
+});
+
+/** Icon, colour, and need/want default; undefined leaves a field alone. */
+export async function styleCategory(actor: Actor, id: string, input: z.input<typeof styleCategorySchema>): Promise<void> {
+  const data = styleCategorySchema.parse(input);
+  const before = await db.category.findFirst({ where: { id, userId: actor.userId } });
+  if (!before) throw notFound("Category", id);
+  if (data.necessity && before.kind !== "EXPENSE") throw new DomainError("INVALID", "category_kind", "Only expense categories are needs or wants.");
+  await db.$transaction(async (tx) => {
+    const after = await tx.category.update({ where: { id }, data });
+    await audit(tx, actor, { action: "category.style", entity: "Category", entityId: id, before, after });
   });
 }

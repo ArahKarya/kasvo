@@ -59,7 +59,7 @@ export default async function ImportPage({ searchParams }: PageProps<"/import">)
         {history.length === 0 ? (
           <p className="text-sm text-muted">{im.noHistory}</p>
         ) : (
-          <ul className="divide-y divide-border rounded-sm border border-border bg-surface">
+          <ul className="divide-y divide-border rounded-xl border border-border bg-surface">
             {history.map((b) => (
               <li key={b.id}>
                 <Link href={`/import/${b.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-border/30">

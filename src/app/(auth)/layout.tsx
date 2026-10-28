@@ -14,7 +14,7 @@ export default async function AuthLayout({ children }: LayoutProps<"/">) {
         <LocaleSwitch locale={locale} t={t} />
       </div>
       <p className="-mt-4 text-sm text-muted">{t.app.tagline}</p>
-      <div className="rounded-sm border border-border bg-surface p-6">{children}</div>
+      <div className="rounded-xl border border-border bg-surface p-6">{children}</div>
     </main>
   );
 }

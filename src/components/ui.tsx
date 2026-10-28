@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
 
-/** Shared form styling. Small radius, no pills (see docs/SPEC.md §2). */
+/** Shared form styling. Controls keep a small radius (no pills); cards use rounded-xl. */
 export const inputClass =
   "w-full rounded-sm border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 disabled:opacity-60";
 
@@ -37,7 +37,7 @@ export function Select(props: ComponentProps<"select">) {
 }
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-sm border border-border bg-surface p-4 ${className}`}>{children}</section>;
+  return <section className={`rounded-xl border border-border bg-surface p-4 sm:p-5 ${className}`}>{children}</section>;
 }
 
 export function PageTitle({ children, actions }: { children: ReactNode; actions?: ReactNode }) {

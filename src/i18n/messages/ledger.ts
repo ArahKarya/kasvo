@@ -45,6 +45,7 @@ export const en = {
     pdf_unreadable: "This file can't be read as a PDF.",
     pdf_no_text: "This PDF has no text (it looks like a scan). Download the e-statement from internet banking, or ask an agent to read it.",
     pdf_unrecognised: "No transaction table was found in this PDF. Try the CSV export, or ask an agent to read it.",
+    asset_units: "This asset has no quantity, so enter its total value.",
   },
   accountType: {
     BANK: "Bank",
@@ -83,6 +84,11 @@ export const en = {
     EXPENSE: "Expense",
     used: "{n} transactions",
     rename: "Rename",
+    icon: "Icon",
+    color: "Colour",
+    necessityLabel: "Need or want",
+    necessityHint: "Used for the 50/30/20 view; a single transaction can still be marked differently.",
+    necessity: { NEED: "Need", WANT: "Want", NONE: "Not marked" },
   },
   tx: {
     title: "Transactions",
@@ -167,6 +173,7 @@ export const id: typeof en = {
     pdf_unreadable: "File ini tidak bisa dibaca sebagai PDF.",
     pdf_no_text: "PDF ini tidak berisi teks (sepertinya hasil scan). Unduh e-statement dari internet banking, atau minta agent membacanya.",
     pdf_unrecognised: "Tabel transaksi tidak ditemukan di PDF ini. Coba ekspor CSV, atau minta agent membacanya.",
+    asset_units: "Aset ini tidak punya jumlah unit, jadi isi nilai totalnya.",
   },
   accountType: {
     BANK: "Bank",
@@ -205,6 +212,11 @@ export const id: typeof en = {
     EXPENSE: "Pengeluaran",
     used: "{n} transaksi",
     rename: "Ganti nama",
+    icon: "Ikon",
+    color: "Warna",
+    necessityLabel: "Kebutuhan atau keinginan",
+    necessityHint: "Dipakai untuk tampilan 50/30/20; satu transaksi tetap bisa ditandai berbeda.",
+    necessity: { NEED: "Kebutuhan", WANT: "Keinginan", NONE: "Belum ditandai" },
   },
   tx: {
     title: "Transaksi",

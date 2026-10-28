@@ -24,6 +24,7 @@ export const en = {
     budgets: "Budgets",
     goals: "Goals",
     debts: "Debts",
+    assets: "Assets",
     categories: "Categories",
     rules: "Rules",
     import: "Import",
@@ -37,6 +38,8 @@ export const en = {
     signedInAs: "Signed in as {email}",
     language: "Language",
     changeServer: "Change server",
+    hideAmounts: "Hide amounts",
+    showAmounts: "Show amounts",
   },
   dashboard: {
     greeting: "Hello, {name}",
@@ -80,6 +83,7 @@ export const id: typeof en = {
     budgets: "Anggaran",
     goals: "Target",
     debts: "Utang",
+    assets: "Aset",
     categories: "Kategori",
     rules: "Aturan",
     import: "Impor",
@@ -93,6 +97,8 @@ export const id: typeof en = {
     signedInAs: "Masuk sebagai {email}",
     language: "Bahasa",
     changeServer: "Ganti server",
+    hideAmounts: "Sembunyikan nominal",
+    showAmounts: "Tampilkan nominal",
   },
   dashboard: {
     greeting: "Halo, {name}",

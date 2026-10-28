@@ -157,7 +157,7 @@ export default async function DebtPage({ params }: PageProps<"/debts/[id]">) {
           <p className="text-sm text-muted">{d.noPayments}</p>
         ) : (
           <>
-            <ul className="divide-y divide-border rounded-sm border border-border bg-surface text-sm">
+            <ul className="divide-y divide-border rounded-xl border border-border bg-surface text-sm">
               {debt.payments.map((p) => (
                 <li key={p.id} className="flex items-center justify-between gap-3 px-4 py-2">
                   <span className="text-muted">{date(p.paidOn)}</span>

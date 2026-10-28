@@ -27,7 +27,7 @@ export function registerReadTools(server: McpServer, ctx: McpContext): void {
     "kasvo_overview",
     {
       title: "Financial overview",
-      description: "Net worth, balance of every active account, this month's income and spending, and debt instalments overdue or due within 7 days. Start here for any question about the user's money.",
+      description: "Net worth (account balances + assets + money lent out − credit/loan balances − debts), balance of every active account, this month's income and spending, and debt instalments overdue or due within 7 days. Start here for any question about the user's money.",
       annotations: READ,
     },
     () =>
@@ -37,6 +37,13 @@ export function registerReadTools(server: McpServer, ctx: McpContext): void {
           currency: ctx.currency,
           month: thisMonth(ctx),
           netWorth: money(ctx, o.netWorth),
+          netWorthParts: {
+            accountBalances: money(ctx, o.wealth.cash),
+            assets: money(ctx, o.wealth.assets),
+            receivables: money(ctx, o.wealth.receivables),
+            creditAndLoanAccounts: money(ctx, -o.wealth.accountDebt),
+            debts: money(ctx, -o.wealth.debts),
+          },
           incomeThisMonth: money(ctx, o.incomeThisMonth),
           spendingThisMonth: money(ctx, o.expenseThisMonth),
           accounts: accounts.map((a) => ({ id: a.id, name: a.name, type: a.type, balance: money(ctx, a.balance, a.currency) })),

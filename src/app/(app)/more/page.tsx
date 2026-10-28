@@ -31,7 +31,7 @@ export default async function MorePage() {
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <PageTitle>{t.mobileNav.more}</PageTitle>
-      <ul className="divide-y divide-border rounded-sm border border-border bg-surface">
+      <ul className="divide-y divide-border rounded-xl border border-border bg-surface">
         {NAV_ITEMS.filter((i) => !inTabs.has(i.key)).map(({ href, key, icon: Icon }) => (
           <li key={href}>
             <Link href={href} className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-border/30">
@@ -42,7 +42,7 @@ export default async function MorePage() {
           </li>
         ))}
       </ul>
-      <section className="space-y-3 rounded-sm border border-border bg-surface p-4">
+      <section className="space-y-3 rounded-xl border border-border bg-surface p-4">
         <p className="truncate text-sm text-muted">{fmt(t.mobileNav.signedInAs, { email: user.email })}</p>
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm">{t.mobileNav.language}</span>

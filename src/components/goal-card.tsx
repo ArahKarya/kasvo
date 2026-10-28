@@ -21,7 +21,7 @@ export function GoalCard({ goal, t, money, date, asHeading = false }: GoalCardPr
     p.projectedOn ? fmt(g.projected, { date: date(p.projectedOn) }) : null,
   ].filter(Boolean);
   return (
-    <li className="rounded-sm border border-border bg-surface p-4">
+    <li className="rounded-xl border border-border bg-surface p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         {asHeading ? (
           <h1 className="text-2xl font-bold tracking-tight">{goal.name}</h1>

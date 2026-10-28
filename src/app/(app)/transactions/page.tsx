@@ -123,7 +123,7 @@ export default async function TransactionsPage({ searchParams }: PageProps<"/tra
           [t.tx.totalExpense, money(page.expense), "text-expense"],
           [t.tx.net, money(page.income - page.expense), ""],
         ].map(([label, value, color]) => (
-          <div key={label} className="rounded-sm border border-border bg-surface px-3 py-2">
+          <div key={label} className="rounded-xl border border-border bg-surface px-3 py-2">
             <dt className="text-xs text-muted">{label}</dt>
             <dd className={`num font-bold ${color}`}>{value}</dd>
           </div>
