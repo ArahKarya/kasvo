@@ -16,7 +16,7 @@ function CategoryItem({ c, t, child }: { c: CategoryRow; t: Dictionary; child?: 
   const ct = t.categories;
   const swatch = "flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border peer-checked:border-accent peer-checked:ring-2 peer-checked:ring-accent/30 peer-focus-visible:ring-2 peer-focus-visible:ring-accent";
   return (
-    <li className={`flex flex-wrap items-center gap-2 px-4 py-2.5 ${child ? "pl-10" : ""}`}>
+    <li className={`px-4 py-2.5 ${child ? "pl-10" : ""}`}>
       <details className="min-w-0 flex-1">
         <summary className="flex cursor-pointer list-none items-center gap-3">
           <CategoryIcon icon={c.icon} color={c.color} size={32} />
@@ -65,12 +65,12 @@ function CategoryItem({ c, t, child }: { c: CategoryRow; t: Dictionary; child?: 
             </Field>
           )}
         </ActionForm>
+        <form action={archiveCategoryAction} className="mt-3 border-t border-border pt-3">
+          <input type="hidden" name="id" value={c.id} />
+          <input type="hidden" name="archived" value={c.archivedAt ? "0" : "1"} />
+          <button className={c.archivedAt ? buttonClass.secondary : buttonClass.danger}>{c.archivedAt ? t.common.unarchive : t.common.archive}</button>
+        </form>
       </details>
-      <form action={archiveCategoryAction}>
-        <input type="hidden" name="id" value={c.id} />
-        <input type="hidden" name="archived" value={c.archivedAt ? "0" : "1"} />
-        <button className={buttonClass.ghost}>{c.archivedAt ? t.common.unarchive : t.common.archive}</button>
-      </form>
     </li>
   );
 }

@@ -44,6 +44,7 @@ export default async function DebtPage({ params }: PageProps<"/debts/[id]">) {
   const il = intlLocale(locale);
   const money = (v: bigint) => formatMoney(v, user.baseCurrency, il);
   const date = (d: string) => formatDay(d, il);
+  const shortDate = (d: string) => new Intl.DateTimeFormat(il, { day: "numeric", month: "short", year: "2-digit", timeZone: "UTC" }).format(new Date(`${d}T00:00:00Z`));
   const d = t.debts;
   const s = debt.status;
   const kind = debt.direction === "BORROWED" ? "EXPENSE" : "INCOME";
@@ -128,7 +129,7 @@ export default async function DebtPage({ params }: PageProps<"/debts/[id]">) {
                     <th className="py-1.5 pr-2 font-medium">{d.seq}</th>
                     <th className="py-1.5 pr-2 font-medium">{d.dueOn}</th>
                     <th className="py-1.5 pr-2 text-right font-medium">{d.amount}</th>
-                    <th className="py-1.5 pr-2 text-right font-medium">{d.paid}</th>
+                    <th className="hidden py-1.5 pr-2 text-right font-medium sm:table-cell">{d.paid}</th>
                     <th className="py-1.5 font-medium">{d.status}</th>
                   </tr>
                 </thead>
@@ -136,10 +137,10 @@ export default async function DebtPage({ params }: PageProps<"/debts/[id]">) {
                   {s.lines.map((l) => (
                     <tr key={l.seq}>
                       <td className="num py-1.5 pr-2 text-muted">{l.seq}</td>
-                      <td className="py-1.5 pr-2">{date(l.dueOn)}</td>
+                      <td className="py-1.5 pr-2 whitespace-nowrap">{shortDate(l.dueOn)}</td>
                       <td className="num py-1.5 pr-2 text-right">{money(l.amount)}</td>
-                      <td className="num py-1.5 pr-2 text-right text-muted">{l.paid > 0n ? money(l.paid) : t.common.none}</td>
-                      <td className="py-1.5">
+                      <td className="num hidden py-1.5 pr-2 text-right text-muted sm:table-cell">{l.paid > 0n ? money(l.paid) : t.common.none}</td>
+                      <td className="py-1.5 whitespace-nowrap">
                         <StatusLabel tone={LINE_TONE[l.status]} label={d.line[l.status]} />
                       </td>
                     </tr>

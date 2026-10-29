@@ -70,7 +70,7 @@ export default async function BudgetsPage({ searchParams }: PageProps<"/budgets"
         <div className="mt-4 h-2.5 rounded-sm bg-white/20" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(usedPct, 100)} aria-label={b.spentInBudgets}>
           <div className={`h-full rounded-sm ${left < 0n ? "bg-[#ff8f7a]" : "bg-[#f4ae2a]"}`} style={{ width: `${Math.min(usedPct, 100)}%` }} />
         </div>
-        <dl className="mt-3 grid grid-cols-3 gap-3 text-sm">
+        <dl className="mt-3 grid grid-cols-3 gap-3 text-sm [&>div]:flex [&>div]:flex-col [&>div]:justify-between">
           <div>
             <dt className="text-xs text-white/70">{b.spentInBudgets}</dt>
             <dd className="num font-semibold">{money(status.spentInBudgets)}</dd>
@@ -118,9 +118,9 @@ export default async function BudgetsPage({ searchParams }: PageProps<"/budgets"
                     .filter(Boolean)
                     .join(" · ")}
                 </p>
-                <ActionForm action={setBudgetAction.bind(null, month)} submit={t.common.save} className="flex items-end gap-2 [&>div]:mt-0">
+                <ActionForm action={setBudgetAction.bind(null, month)} submit={t.common.save} className="flex w-full flex-wrap items-end gap-2 sm:w-auto [&>div]:mt-0">
                   <input type="hidden" name="categoryId" value={l.categoryId} />
-                  <Input name="amount" defaultValue={l.amount.toString()} inputMode="decimal" aria-label={b.amount} className="w-32 py-1" />
+                  <Input name="amount" defaultValue={l.amount.toString()} inputMode="decimal" aria-label={b.amount} className="min-w-0 flex-1 py-1 sm:w-32 sm:flex-none" />
                 </ActionForm>
               </div>
             </li>

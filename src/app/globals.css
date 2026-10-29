@@ -141,6 +141,14 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * Grid children default to min-width: auto, so one long name, amount, or table can push a column
+ * (and the page) wider than a phone screen. Let them shrink; their text truncates or wraps instead.
+ */
+.grid > * {
+  min-width: 0;
+}
+
 /* "Hide balances": every number is blurred until the eye is toggled back (see AmountsToggle). */
 [data-hide-amounts] .num {
   filter: blur(7px);

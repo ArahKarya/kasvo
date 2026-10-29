@@ -10,6 +10,7 @@ import { buttonClass, Card, Field, Input } from "@/components/ui";
 import { requireUser } from "@/server/auth";
 import { db } from "@/server/db";
 import { getAsset } from "@/server/domain/assets";
+import { monthsUntil } from "@/server/domain/goal-math";
 import { todayIn } from "@/server/domain/dates";
 import { DomainError } from "@/server/domain/errors";
 import { formatMoney } from "@/server/domain/money";
@@ -28,6 +29,7 @@ export default async function AssetPage({ params }: PageProps<"/assets/[id]">) {
     throw error;
   });
   const il = intlLocale(locale);
+  const today = todayIn(timezone);
   const money = (v: bigint) => formatMoney(v, user.baseCurrency, il);
   const a = t.assets;
   const Icon = ASSET_ICONS[asset.kind];
@@ -38,17 +40,17 @@ export default async function AssetPage({ params }: PageProps<"/assets/[id]">) {
       <Link href="/assets" className="text-sm text-muted hover:text-text">
         ← {t.common.back}
       </Link>
-      <section className="flex items-center gap-4 rounded-xl border border-border bg-surface p-5">
+      <section className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-surface p-5">
         <span aria-hidden="true" className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gold-soft text-gold-text">
           <Icon size={28} />
         </span>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-2xl font-bold tracking-tight">{asset.name}</h1>
+        <div className="min-w-0 flex-1 basis-48">
+          <h1 className="text-2xl font-bold tracking-tight break-words">{asset.name}</h1>
           <p className="text-sm text-muted">
             {[a.kinds[asset.kind], asset.units ? `${asset.units} unit` : null, asset.purchaseValue !== null ? fmt(a.purchasePrice, { amount: money(asset.purchaseValue) }) : null].filter(Boolean).join(" · ")}
           </p>
         </div>
-        <div className="text-right">
+        <div className="w-full border-t border-border pt-3 sm:w-auto sm:border-0 sm:pt-0 sm:text-right">
           <p className="num text-xl font-bold">{money(asset.value)}</p>
           {asset.gain !== null && (
             <p className={`num text-sm ${asset.gain > 0n ? "text-income" : asset.gain < 0n ? "text-expense" : "text-muted"}`}>
@@ -65,7 +67,7 @@ export default async function AssetPage({ params }: PageProps<"/assets/[id]">) {
           <p className="num mt-1 text-lg font-bold">{asset.purchaseValue !== null ? money(asset.purchaseValue) : "—"}</p>
           <p className="mt-1 text-xs text-muted">
             {asset.purchasedOn ? formatDay(asset.purchasedOn, il) : ""}
-            {asset.purchasedOn ? ` · ${fmt(a.ageMonths, { n: String(Math.max(0, Math.floor((Date.now() - new Date(asset.purchasedOn).getTime()) / 2629800000))) })}` : ""}
+            {asset.purchasedOn ? ` · ${fmt(a.ageMonths, { n: String(monthsUntil(asset.purchasedOn, today)) })}` : ""}
           </p>
         </div>
         <div className="rounded-xl border border-border bg-surface p-4">
@@ -98,7 +100,7 @@ export default async function AssetPage({ params }: PageProps<"/assets/[id]">) {
               </Field>
             )}
             <Field label={a.valuedOn}>
-              <Input name="valuedOn" type="date" required defaultValue={todayIn(timezone)} />
+              <Input name="valuedOn" type="date" required defaultValue={today} />
             </Field>
           </div>
         </ActionForm>

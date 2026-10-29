@@ -66,8 +66,8 @@ export default async function AssetsPage() {
                       {[a.kinds[x.kind], x.units ? `${x.units} unit` : null, x.purchaseValue !== null ? `${a.acquired} ${money(x.purchaseValue)}` : null, x.valuedOn ? fmt(a.asOf, { date: formatDay(x.valuedOn, il) }) : null].filter(Boolean).join(" · ")}
                     </span>
                   </span>
-                  <span className="text-right">
-                    <span className="num block font-semibold">{money(x.value)}</span>
+                  <span className="shrink-0 text-right">
+                    <span className="num block font-semibold whitespace-nowrap">{money(x.value)}</span>
                     {x.gain !== null && x.gain !== 0n && (
                       <span className={`num block text-xs ${x.gain > 0n ? "text-income" : "text-expense"}`}>
                         {x.gain > 0n ? "+" : ""}

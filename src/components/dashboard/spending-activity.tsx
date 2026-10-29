@@ -20,7 +20,7 @@ export function SpendingActivity({ days, safePerDay, locale, money, compact, lab
   return (
     <section className="rounded-xl border border-border bg-surface p-4 sm:p-5">
       <h2 className="font-semibold">{labels.title}</h2>
-      <dl className="mt-3 grid grid-cols-3 gap-2 text-sm">
+      <dl className="mt-3 grid grid-cols-3 gap-2 text-sm [&>div]:flex [&>div]:flex-col [&>div]:justify-between">
         <div>
           <dt className="text-xs text-muted">{labels.total}</dt>
           <dd className="num font-semibold text-accent">{compact(total)}</dd>
@@ -30,7 +30,7 @@ export function SpendingActivity({ days, safePerDay, locale, money, compact, lab
           <dd className="num font-semibold text-accent">{compact(total / BigInt(days.length))}</dd>
         </div>
         <div>
-          <dt className="text-xs text-muted">{labels.safePerDay}</dt>
+          <dt className="text-xs text-muted" title={labels.safePerDay}>{labels.safePerDay}</dt>
           <dd className="font-semibold">
             {safePerDay === null ? (
               <Link href="/budgets" className="text-sm text-accent hover:underline">
@@ -57,8 +57,8 @@ export function SpendingActivity({ days, safePerDay, locale, money, compact, lab
                   style={{ height: `${Math.max(share * 100, d.total > 0n ? 6 : 0)}%` }}
                 />
               </div>
-              <span aria-hidden="true" className={`text-[11px] ${today ? "font-semibold text-text" : "text-muted"}`}>
-                {today ? labels.today : weekday.format(date)}
+              <span aria-hidden="true" className={`max-w-full truncate text-[11px] ${today ? "font-semibold text-accent" : "text-muted"}`}>
+                {weekday.format(date)}
               </span>
             </li>
           );

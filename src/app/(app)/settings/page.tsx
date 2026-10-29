@@ -126,12 +126,19 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
         ) : (
           <ul className="divide-y divide-border border-t border-border">
             {audit.map((a) => (
-              <li key={a.id} className="flex items-center gap-3 px-4 py-2 text-sm">
-                {a.actorKind === "AGENT" ? <Bot size={14} className="text-accent" aria-label="agent" /> : <User size={14} className="text-muted" aria-label="user" />}
-                <code className="font-mono text-xs">{a.action}</code>
-                <span className="min-w-0 flex-1 truncate text-muted">{describe(a.after, a.before)}</span>
-                <span className="text-xs text-muted">{a.clientName ?? s.auditYou}</span>
-                <time className="whitespace-nowrap text-xs text-muted">{when.format(a.at)}</time>
+              <li key={a.id} className="flex items-start gap-3 px-4 py-2.5 text-sm sm:items-center">
+                <span className="mt-0.5 shrink-0 sm:mt-0">{a.actorKind === "AGENT" ? <Bot size={14} className="text-accent" aria-label="agent" /> : <User size={14} className="text-muted" aria-label="user" />}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex min-w-0 items-baseline gap-2">
+                    <code className="shrink-0 font-mono text-xs">{a.action}</code>
+                    <span className="min-w-0 truncate text-muted">{describe(a.after, a.before)}</span>
+                  </span>
+                  <span className="mt-0.5 block text-xs text-muted sm:hidden">
+                    {a.clientName ?? s.auditYou} · {when.format(a.at)}
+                  </span>
+                </span>
+                <span className="hidden text-xs text-muted sm:inline">{a.clientName ?? s.auditYou}</span>
+                <time className="hidden whitespace-nowrap text-xs text-muted sm:inline">{when.format(a.at)}</time>
               </li>
             ))}
           </ul>

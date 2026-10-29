@@ -177,6 +177,24 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                 {comparison.rows.length === 0 ? (
                   <p className="px-4 pb-4 text-sm text-muted">{r.noData}</p>
                 ) : (
+                  <>
+                  <ul className="mt-2 divide-y divide-border text-sm sm:hidden">
+                    {comparison.rows.slice(0, 8).map((row) => (
+                      <li key={row.key ?? "none"} className="flex items-center justify-between gap-3 px-4 py-2.5">
+                        <span className="min-w-0">
+                          <span className="block truncate">{row.key ? row.label : t.tx.uncategorized}</span>
+                          <span className="num block text-xs text-muted">
+                            {money(row.a)} → {money(row.b)}
+                          </span>
+                        </span>
+                        <span className={`num shrink-0 font-medium ${row.change > 0n ? "text-expense" : row.change < 0n ? "text-income" : "text-muted"}`}>
+                          {row.change > 0n ? "+" : ""}
+                          {row.changePct === null ? r.newCategory : `${row.changePct}%`}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="hidden sm:block">
                   <table className="mt-2 w-full text-sm">
                     <thead className="text-left text-xs text-muted">
                       <tr>
@@ -200,6 +218,8 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                       ))}
                     </tbody>
                   </table>
+                  </div>
+                  </>
                 )}
               </Card>
 

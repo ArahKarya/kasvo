@@ -132,11 +132,11 @@ function QuickEntryForm({ accounts, categories, today, locale, currency, labels,
   if (accounts.length === 0) return <p className="text-sm text-muted">{q.needAccount}</p>;
 
   const keys = ["C", "÷", "×", "⌫", "7", "8", "9", "−", "4", "5", "6", "+", "1", "2", "3", "000", "0", ","];
-  const keyClass = "flex h-12 items-center justify-center rounded-lg border border-border bg-surface text-lg font-medium active:bg-surface-2 hover:bg-surface-2";
+  const keyClass = "flex h-11 [@media(min-height:760px)]:h-12 items-center justify-center rounded-lg border border-border bg-surface text-lg font-medium active:bg-surface-2 hover:bg-surface-2";
   const kindLabel: Record<Kind, string> = { EXPENSE: labels.tx.expense, INCOME: labels.tx.income, TRANSFER: labels.tx.transfer };
 
   return (
-    <form onSubmit={submit} className="space-y-3">
+    <form onSubmit={submit} className="space-y-2.5 [@media(min-height:760px)]:space-y-3">
       <input type="hidden" name="kind" value={kind} />
       <input type="hidden" name="bookedOn" value={day} />
       <input type="hidden" name="accountId" value={accountId} />
@@ -184,7 +184,7 @@ function QuickEntryForm({ accounts, categories, today, locale, currency, labels,
           inputMode="none"
           autoComplete="off"
           placeholder="0"
-          className={`num w-full bg-transparent text-right text-4xl font-bold tracking-tight outline-none placeholder:text-muted/50 ${kind === "INCOME" ? "text-income" : kind === "EXPENSE" ? "text-expense" : ""}`}
+          className={`num w-full bg-transparent text-right text-3xl font-bold [@media(min-height:760px)]:text-4xl tracking-tight outline-none placeholder:text-muted/50 ${kind === "INCOME" ? "text-income" : kind === "EXPENSE" ? "text-expense" : ""}`}
         />
         <p className="num h-5 text-sm text-muted">{isExpression(amount) && value !== null ? `= ${formatMoney(value, currency, locale)}` : value !== null && amount ? formatMoney(value, currency, locale) : ""}</p>
       </div>
@@ -219,22 +219,24 @@ function QuickEntryForm({ accounts, categories, today, locale, currency, labels,
         </>
       )}
 
-      <div className="grid grid-cols-4 gap-1.5">
-        {keys.map((k) => (
-          <button key={k} type="button" onClick={() => press(k)} aria-label={k === "⌫" ? q.backspace : k === "C" ? q.clear : k} className={`${keyClass} ${["÷", "×", "−", "+", "C"].includes(k) ? "text-muted" : ""}`}>
-            {k === "⌫" ? <Delete size={20} aria-hidden="true" /> : k}
-          </button>
-        ))}
-        <button type="submit" disabled={pending} className="col-span-2 flex h-12 items-center justify-center rounded-lg bg-accent text-base font-semibold text-accent-text disabled:opacity-60">
-          {q.save}
-        </button>
-      </div>
-
       {error && (
         <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}
+
+      {/* Pinned to the bottom of the sheet so Save stays reachable on short phones. */}
+      <div className="sticky bottom-0 z-10 -mx-4 grid grid-cols-4 gap-1.5 bg-surface px-4 pt-2 pb-[calc(0.25rem+env(safe-area-inset-bottom))] sm:static sm:mx-0 sm:px-0 sm:pt-0 sm:pb-0">
+        {keys.map((k) => (
+          <button key={k} type="button" onClick={() => press(k)} aria-label={k === "⌫" ? q.backspace : k === "C" ? q.clear : k} className={`${keyClass} ${["÷", "×", "−", "+", "C"].includes(k) ? "text-muted" : ""}`}>
+            {k === "⌫" ? <Delete size={20} aria-hidden="true" /> : k}
+          </button>
+        ))}
+        <button type="submit" disabled={pending} className="col-span-2 flex h-11 [@media(min-height:760px)]:h-12 items-center justify-center rounded-lg bg-accent text-base font-semibold text-accent-text disabled:opacity-60">
+          {q.save}
+        </button>
+      </div>
+
     </form>
   );
 }
