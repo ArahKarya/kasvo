@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { deleteTransactionAction, editTransactionAction } from "@/app/actions/ledger";
+import { AttachmentPanel } from "@/components/attachment-panel";
 import { TransactionForm } from "@/components/transaction-form";
+import { MAX_ATTACHMENTS_PER_TRANSACTION } from "@/server/domain/attachment-files";
+import { listAttachments } from "@/server/domain/attachments";
 import { Amount, buttonClass, Card, PageTitle } from "@/components/ui";
 import { requireUser } from "@/server/auth";
 import { toDay } from "@/server/domain/dates";
@@ -18,7 +21,7 @@ export default async function TransactionPage({ params }: PageProps<"/transactio
   const user = await requireUser();
   const { t, locale } = await getDictionary();
   const { id } = await params;
-  const [row, { accounts, categories }] = await Promise.all([getTransaction(user.id, id), pickerOptions(user.id)]);
+  const [row, { accounts, categories }, attachments] = await Promise.all([getTransaction(user.id, id), pickerOptions(user.id), listAttachments(user.id, id)]);
   if (!row) notFound();
 
   const isTransfer = Boolean(row.transferId);
@@ -40,6 +43,13 @@ export default async function TransactionPage({ params }: PageProps<"/transactio
         </p>
       )}
       {row.source === "AGENT" && <p className="-mt-4 text-xs text-muted">{fmt(t.tx.byAgent, { client: row.createdBy ?? "agent" })}</p>}
+
+      <AttachmentPanel
+        transactionId={row.id}
+        items={attachments.map((a) => ({ id: a.id, fileName: a.fileName, mimeType: a.mimeType, size: a.size }))}
+        labels={t.attach}
+        max={MAX_ATTACHMENTS_PER_TRANSACTION}
+      />
 
       <Card>
         <h2 className="mb-3 font-semibold">{t.tx.editTitle}</h2>

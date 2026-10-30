@@ -36,6 +36,7 @@ model User {
   goals        Goal[]
   debts        Debt[]
   assets       Asset[]
+  attachments  Attachment[]
 
   @@map("users")
 }
@@ -152,6 +153,7 @@ model Transaction {
   category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   importBatch ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
   debtPayment DebtPayment?
+  attachments Attachment[]
 
   @@index([userId, bookedOn])
   @@index([accountId, bookedOn])
@@ -475,4 +477,27 @@ model AssetValuation {
 
   @@index([assetId, valuedOn])
   @@map("asset_valuations")
+}
+
+/// A receipt, invoice, or proof of transfer kept with a transaction. Stored in the database so a
+/// single backup holds everything; photos are shrunk in the browser before upload.
+model Attachment {
+  id            String   @id @default(cuid())
+  userId        String
+  transactionId String
+  fileName      String
+  /// Sniffed from the bytes, never taken from the upload: image/jpeg, image/png, image/webp, application/pdf.
+  mimeType      String
+  size          Int
+  sha256        String
+  data          Bytes
+  /// MCP client name when an agent attached it.
+  createdBy     String?
+  createdAt     DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([transactionId])
+  @@map("attachments")
 }

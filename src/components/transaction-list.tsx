@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeftRight, Bot } from "lucide-react";
+import { ArrowLeftRight, Bot, Paperclip } from "lucide-react";
 import { CategoryIcon } from "./category-icons";
 import type { DayTotal, TransactionRow } from "@/server/domain/transaction-queries";
 import { formatMoney } from "@/server/domain/money";
@@ -60,6 +60,12 @@ export function TransactionList({ items, t, locale, totals, currency = "IDR" }: 
                         <p className="truncate text-sm font-medium">{i.description}</p>
                         <p className="flex items-center gap-1.5 truncate text-xs text-muted">
                           {meta.join(" · ")}
+                          {i.attachmentCount > 0 && (
+                            <span className="inline-flex shrink-0 items-center gap-0.5" title={fmt(t.attach.count, { n: i.attachmentCount })}>
+                              <Paperclip size={12} aria-label={fmt(t.attach.count, { n: i.attachmentCount })} />
+                              {i.attachmentCount > 1 && i.attachmentCount}
+                            </span>
+                          )}
                           {i.source === "AGENT" && (
                             <span className="inline-flex items-center gap-1" title={fmt(t.tx.byAgent, { client: i.createdBy ?? "agent" })}>
                               <Bot size={12} aria-hidden="true" />

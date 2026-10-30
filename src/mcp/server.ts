@@ -12,10 +12,11 @@ import { registerBudgetTools } from "./tools/budgets";
 import { registerPlanTools } from "./tools/plans";
 import { registerAssetTools } from "./tools/assets";
 import { registerInsightTools } from "./tools/insights";
+import { registerAttachmentTools } from "./tools/attachments";
 import { registerReadTools } from "./tools/read";
 import { registerWriteTools } from "./tools/write";
 
-export const SERVER_INFO = { name: "kasvo", version: "0.8.0" } as const;
+export const SERVER_INFO = { name: "kasvo", version: "0.9.0" } as const;
 
 const INSTRUCTIONS = `Kasvo holds the user's personal finances (Indonesia first; amounts are whole rupiah unless an account says otherwise).
 - Start with kasvo_overview. Accounts and categories can be referenced by name or id.
@@ -26,6 +27,7 @@ const INSTRUCTIONS = `Kasvo holds the user's personal finances (Indonesia first;
 - Net worth = account balances + assets (kasvo_list_assets) + money lent out − credit/loan balances − debts; kasvo_net_worth gives the parts and the monthly trend.
 - Expenses are needs or wants (a transaction's own tag, else its category's default); kasvo_allocation compares them with the 50/30/20 rule.
 - Amount inputs also accept sums such as "25rb+10rb×2".
+- Transactions can carry receipts (kasvo_attach_file, kasvo_list_attachments). kasvo_get_attachment shows a photo so you can read it; when the user sends a receipt photo, record the transaction and attach the photo to it.
 - Savings goals and debts: kasvo_list_goals, kasvo_list_debts. When a debt payment already appears as a transaction (e.g. imported), link it with kasvo_pay_debt's transactionId instead of booking it again.
 - Every change is recorded in the user's audit log under this client's name.`;
 
@@ -42,6 +44,7 @@ export function createKasvoServer(ctx: McpContext): McpServer {
     registerPlanTools(server, ctx);
     registerAssetTools(server, ctx);
     registerInsightTools(server, ctx);
+    registerAttachmentTools(server, ctx);
   }
   if (ctx.scopes.includes("write")) registerWriteTools(server, ctx);
   if (ctx.scopes.includes("destructive")) registerDestructiveTools(server, ctx);

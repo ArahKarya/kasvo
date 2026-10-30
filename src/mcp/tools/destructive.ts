@@ -6,6 +6,7 @@ import { db } from "@/server/db";
 import { deleteTransactions } from "@/server/domain/transactions";
 import { revertImport } from "@/server/domain/import/service";
 import { removeDebtPayment } from "@/server/domain/debts";
+import { removeAttachment } from "@/server/domain/attachments";
 import { getImport } from "@/server/domain/import/queries";
 import { consumePending, createPending } from "@/server/domain/pending";
 import { DomainError } from "@/server/domain/errors";
@@ -16,6 +17,7 @@ import { day, run } from "../result";
 const DELETE_TOOL = "kasvo_delete_transactions";
 const REVERT_TOOL = "kasvo_revert_import";
 const UNPAY_TOOL = "kasvo_remove_debt_payment";
+const UNATTACH_TOOL = "kasvo_remove_attachment";
 
 /**
  * Destructive tools never act directly. They return a pendingId and a summary; nothing
@@ -86,6 +88,26 @@ export function registerDestructiveTools(server: McpServer, ctx: McpContext): vo
   );
 
   server.registerTool(
+    UNATTACH_TOOL,
+    {
+      title: "Remove an attachment (step 1 of 2)",
+      description: "Prepares deleting an attachment for good (it cannot be restored). Returns a pendingId and a summary; call kasvo_confirm only after the user agrees.",
+      inputSchema: { attachmentId: z.string() },
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    ({ attachmentId }) =>
+      run(async () => {
+        const a = await db.attachment.findFirst({
+          where: { id: attachmentId, userId: ctx.actor.userId },
+          select: { fileName: true, size: true, transaction: { select: { description: true, bookedOn: true } } },
+        });
+        if (!a) throw new DomainError("NOT_FOUND", "not_found", `Attachment ${attachmentId} not found.`, "Call kasvo_list_attachments for ids.");
+        const summary = `Delete attachment "${a.fileName}" (${Math.ceil(a.size / 1024)} KB) from "${a.transaction.description}" on ${day(a.transaction.bookedOn)}. This cannot be undone.`;
+        return { ...(await createPending(ctx.actor, UNATTACH_TOOL, { attachmentId }, summary)), next: "Show this summary to the user. If they agree, call kasvo_confirm with pendingId." };
+      }),
+  );
+
+  server.registerTool(
     "kasvo_confirm",
     {
       title: "Confirm a pending action (step 2 of 2)",
@@ -107,6 +129,10 @@ export function registerDestructiveTools(server: McpServer, ctx: McpContext): vo
         if (tool === UNPAY_TOOL) {
           const { paymentId } = z.object({ paymentId: z.string() }).parse(payload);
           return { done: tool, ...(await removeDebtPayment(ctx.actor, paymentId)) };
+        }
+        if (tool === UNATTACH_TOOL) {
+          const { attachmentId } = z.object({ attachmentId: z.string() }).parse(payload);
+          return { done: tool, ...(await removeAttachment(ctx.actor, attachmentId)) };
         }
         throw new DomainError("INVALID", "not_found", `Unknown pending tool ${tool}.`);
       }),

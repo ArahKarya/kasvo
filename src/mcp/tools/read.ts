@@ -151,6 +151,7 @@ export function registerReadTools(server: McpServer, ctx: McpContext): void {
             category: t.category?.name ?? null,
             transfer: t.transferId ? { counterparty: t.counterparty?.name ?? null } : null,
             source: t.source,
+            attachments: t.attachmentCount,
           })),
         };
       }),

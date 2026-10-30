@@ -31,7 +31,7 @@ export default async function RecordPage() {
         </Card>
       ) : (
         <Card>
-          <QuickEntry accounts={accounts} categories={categories} today={todayIn(timezone)} locale={intlLocale(locale)} currency={user.baseCurrency} labels={{ quick: t.quick, tx: t.tx }} />
+          <QuickEntry accounts={accounts} categories={categories} today={todayIn(timezone)} locale={intlLocale(locale)} currency={user.baseCurrency} labels={{ quick: t.quick, tx: t.tx, attach: t.attach }} />
         </Card>
       )}
     </div>

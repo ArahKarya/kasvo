@@ -104,6 +104,7 @@ Names use the `kasvo_` prefix so they read clearly next to other servers' tools.
 | `kasvo_list_goals` | Savings goals: progress, needed per month, projected date, state |
 | `kasvo_list_assets` | Assets (property, vehicles, gold, stocks, funds, crypto, deposits) with latest value and gain |
 | `kasvo_net_worth` | Net worth parts (accounts, assets, receivables, credit/loan balances, debts) and month-end trend |
+| `kasvo_list_attachments`, `kasvo_get_attachment` | A transaction's receipts/proofs; open one (photos as images the agent can read, PDFs as resources) |
 | `kasvo_allocation` | 50/30/20: needs, wants, and savings as shares of income for any period |
 | `kasvo_list_debts`, `kasvo_get_debt` | Debts and receivables: outstanding, next/overdue instalments, full schedule and payments |
 
@@ -125,13 +126,14 @@ Names use the `kasvo_` prefix so they read clearly next to other servers' tools.
 | `kasvo_restore_transactions` | Undo a delete within 30 days |
 | `kasvo_create_goal`, `kasvo_update_goal`, `kasvo_contribute_goal` | Savings goals (linked account or manual contributions) |
 | `kasvo_create_asset`, `kasvo_value_asset` | Record an asset; update its value (total or unit price × units) |
+| `kasvo_attach_file` | Attach a JPG/PNG/WebP/PDF (base64, ≤5 MB, ≤5 per transaction) |
 | `kasvo_update_category` | Rename; set icon, colour, or need/want default |
 | `kasvo_create_debt`, `kasvo_pay_debt` | Debts/receivables; a payment books a transaction, a transfer to a linked loan account, or links an existing (imported) transaction |
 
 **destructive** (two-step)
 | Tool | Purpose |
 |---|---|
-| `kasvo_delete_transactions`, `kasvo_revert_import`, `kasvo_remove_debt_payment` | Return a `PendingAction` id and a human-readable summary; nothing changes yet |
+| `kasvo_delete_transactions`, `kasvo_revert_import`, `kasvo_remove_debt_payment`, `kasvo_remove_attachment` | Return a `PendingAction` id and a human-readable summary; nothing changes yet |
 | `kasvo_confirm` | Executes a pending action by id |
 
 Conventions:

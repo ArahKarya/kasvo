@@ -55,7 +55,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         today={todayIn(timezone)}
         locale={intlLocale(locale)}
         currency={user.baseCurrency}
-        labels={{ quick: t.quick, tx: t.tx }}
+        labels={{ quick: t.quick, tx: t.tx, attach: t.attach }}
       />
       <MobileNav labels={{ dashboard: t.nav.dashboard, transactions: t.nav.transactions, record: t.mobileNav.record, budgets: t.nav.budgets, more: t.mobileNav.more }} />
     </div>

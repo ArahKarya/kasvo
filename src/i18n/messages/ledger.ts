@@ -46,6 +46,9 @@ export const en = {
     pdf_no_text: "This PDF has no text (it looks like a scan). Download the e-statement from internet banking, or ask an agent to read it.",
     pdf_unrecognised: "No transaction table was found in this PDF. Try the CSV export, or ask an agent to read it.",
     asset_units: "This asset has no quantity, so enter its total value.",
+    attachment_type: "Only photos (JPG, PNG, WebP) and PDF files can be attached.",
+    attachment_too_large: "The file is larger than 5 MB.",
+    attachment_limit: "A transaction can have at most 5 attachments.",
   },
   accountType: {
     BANK: "Bank",
@@ -174,6 +177,9 @@ export const id: typeof en = {
     pdf_no_text: "PDF ini tidak berisi teks (sepertinya hasil scan). Unduh e-statement dari internet banking, atau minta agent membacanya.",
     pdf_unrecognised: "Tabel transaksi tidak ditemukan di PDF ini. Coba ekspor CSV, atau minta agent membacanya.",
     asset_units: "Aset ini tidak punya jumlah unit, jadi isi nilai totalnya.",
+    attachment_type: "Hanya foto (JPG, PNG, WebP) dan PDF yang bisa dilampirkan.",
+    attachment_too_large: "Ukuran file lebih dari 5 MB.",
+    attachment_limit: "Satu transaksi maksimal punya 5 lampiran.",
   },
   accountType: {
     BANK: "Bank",

@@ -22,7 +22,10 @@ export type DomainErrorReason =
   | "pdf_unreadable"
   | "pdf_no_text"
   | "pdf_unrecognised"
-  | "asset_units";
+  | "asset_units"
+  | "attachment_type"
+  | "attachment_too_large"
+  | "attachment_limit";
 
 /** An error the caller can show or act on. `hint` tells an agent what to try next. */
 export class DomainError extends Error {

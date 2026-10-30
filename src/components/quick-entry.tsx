@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useSyncExternalStore, useTransition, type FormEvent } from "react";
-import { ChevronLeft, ChevronRight, Delete, Heart, Landmark, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Delete, Heart, Landmark, Paperclip, Star, X } from "lucide-react";
 import { ACCOUNT_ICONS } from "./account-icons";
+import { uploadAttachmentAction } from "@/app/actions/attachments";
 import { quickRecordAction } from "@/app/actions/quick";
+import { compressForUpload } from "@/lib/compress-image";
+import { MAX_ATTACHMENTS_PER_TRANSACTION } from "@/server/domain/attachment-files";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { evaluateAmount, isExpression } from "@/lib/amount-expression";
 import { formatMoney } from "@/server/domain/money";
@@ -33,7 +36,7 @@ interface QuickEntryProps {
   today: string;
   locale: string;
   currency: string;
-  labels: Pick<Dictionary, "quick" | "tx">;
+  labels: Pick<Dictionary, "quick" | "tx" | "attach">;
   /** Called after a successful save (the sheet closes itself). */
   onSaved?: (message: string) => void;
 }
@@ -86,6 +89,8 @@ function QuickEntryForm({ accounts, categories, today, locale, currency, labels,
   const [necessity, setNecessity] = useState<Necessity | null>(null);
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState<string | null>(null);
 
   const value = evaluateAmount(amount);
   const shownCategories = categories.filter((c) => c.kind === (kind === "INCOME" ? "INCOME" : "EXPENSE"));
@@ -115,11 +120,23 @@ function QuickEntryForm({ accounts, categories, today, locale, currency, labels,
         setError(result.error ?? "");
         return;
       }
+      // Files go up one by one once the transaction exists; a failed one is reported, not fatal.
+      const failed: string[] = [];
+      for (const [i, file] of files.entries()) {
+        if (!result.transactionId) break;
+        setUploading(labels.attach.uploading.replace("{done}", String(i + 1)).replace("{total}", String(files.length)));
+        const form = new FormData();
+        form.set("file", await compressForUpload(file));
+        const upload = await uploadAttachmentAction(result.transactionId, form);
+        if (!upload.ok) failed.push(file.name);
+      }
+      setUploading(null);
       setAmount("");
       setDescription("");
       setCategoryId("");
       setNecessity(null);
-      onSaved?.(result.message ?? "");
+      setFiles([]);
+      onSaved?.(failed.length ? `${result.message ?? ""} · ${labels.attach.uploadFailed.replace("{n}", String(failed.length))}` : (result.message ?? ""));
     });
   };
 
@@ -187,6 +204,30 @@ function QuickEntryForm({ accounts, categories, today, locale, currency, labels,
           className={`num w-full bg-transparent text-right text-3xl font-bold [@media(min-height:760px)]:text-4xl tracking-tight outline-none placeholder:text-muted/50 ${kind === "INCOME" ? "text-income" : kind === "EXPENSE" ? "text-expense" : ""}`}
         />
         <p className="num h-5 text-sm text-muted">{isExpression(amount) && value !== null ? `= ${formatMoney(value, currency, locale)}` : value !== null && amount ? formatMoney(value, currency, locale) : ""}</p>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <label className={`inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border border-border px-2.5 py-1.5 text-sm text-muted hover:text-text ${files.length >= MAX_ATTACHMENTS_PER_TRANSACTION ? "pointer-events-none opacity-50" : ""}`}>
+          <Paperclip size={14} aria-hidden="true" />
+          {files.length ? labels.attach.pending.replace("{n}", String(files.length)) : labels.attach.camera}
+          <input
+            type="file"
+            accept="image/*,application/pdf"
+            multiple
+            className="sr-only"
+            onChange={(e) => {
+              const picked = [...(e.target.files ?? [])];
+              setFiles((current) => [...current, ...picked].slice(0, MAX_ATTACHMENTS_PER_TRANSACTION));
+              e.target.value = "";
+            }}
+          />
+        </label>
+        {files.length > 0 && (
+          <button type="button" onClick={() => setFiles([])} aria-label={labels.attach.remove} className="rounded-sm p-1.5 text-muted hover:bg-surface-2">
+            <X size={14} aria-hidden="true" />
+          </button>
+        )}
+        {uploading && <span className="truncate text-xs text-muted">{uploading}</span>}
       </div>
 
       <input name="description" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={200} placeholder={q.descriptionPlaceholder} aria-label={q.description} className="w-full rounded-sm border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent" />

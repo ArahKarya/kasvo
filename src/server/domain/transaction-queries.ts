@@ -33,6 +33,7 @@ export interface TransactionRow {
   counterparty: { id: string; name: string } | null;
   source: TransactionSource;
   createdBy: string | null;
+  attachmentCount: number;
 }
 
 export interface TransactionPage {
@@ -94,6 +95,7 @@ export async function findTransactions(userId: string, input: FindTransactionsIn
 const INCLUDE = {
   account: { select: { id: true, name: true, currency: true } },
   category: { select: { id: true, name: true, icon: true, color: true } },
+  _count: { select: { attachments: true } },
 } as const;
 
 type RowWithRelations = Prisma.TransactionGetPayload<{ include: typeof INCLUDE }>;
@@ -120,6 +122,7 @@ async function withCounterparties(userId: string, rows: RowWithRelations[]): Pro
     counterparty: legs.find((l) => l.transferId === r.transferId && l.id !== r.id)?.account ?? null,
     source: r.source,
     createdBy: r.createdBy,
+    attachmentCount: r._count.attachments,
   }));
 }
 

@@ -14,7 +14,7 @@ interface QuickEntrySheetProps {
   today: string;
   locale: string;
   currency: string;
-  labels: Pick<Dictionary, "quick" | "tx">;
+  labels: Pick<Dictionary, "quick" | "tx" | "attach">;
 }
 
 /**
