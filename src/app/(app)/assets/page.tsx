@@ -7,7 +7,10 @@ import { ASSET_ICONS } from "@/components/asset-icons";
 import { Disclosure } from "@/components/disclosure";
 import { Card, PageTitle } from "@/components/ui";
 import { requireUser } from "@/server/auth";
-import { listAssets } from "@/server/domain/assets";
+import { getMonitor, listAssets } from "@/server/domain/assets";
+import { AssetMonitor } from "@/components/asset-monitor";
+import { db } from "@/server/db";
+import { todayIn } from "@/server/domain/dates";
 import { formatMoney } from "@/server/domain/money";
 import { getDictionary } from "@/i18n/server";
 import { fmt, formatDay, intlLocale } from "@/i18n/dictionaries";
@@ -17,12 +20,15 @@ export const metadata: Metadata = { title: "Assets" };
 export default async function AssetsPage() {
   const user = await requireUser();
   const { t, locale } = await getDictionary();
+  const { timezone } = await db.user.findUniqueOrThrow({ where: { id: user.id }, select: { timezone: true } });
   const all = await listAssets(user.id, { includeArchived: true });
+  const monitor = await getMonitor(user.id, todayIn(timezone));
   const il = intlLocale(locale);
   const money = (v: bigint) => formatMoney(v, user.baseCurrency, il);
   const a = t.assets;
   const active = all.filter((x) => !x.archived);
   const archived = all.filter((x) => x.archived);
+  const monthLabel = (month: string) => new Intl.DateTimeFormat(il, { month: "short", timeZone: "UTC" }).format(new Date(`${month}-01T00:00:00Z`));
   const total = active.reduce((s, x) => s + x.value, 0n);
   const cost = active.reduce((s, x) => s + (x.purchaseValue ?? 0n), 0n);
   const gain = active.filter((x) => x.gain !== null).reduce((s, x) => s + x.gain!, 0n);
@@ -81,6 +87,8 @@ export default async function AssetsPage() {
           })}
         </ul>
       )}
+
+      <AssetMonitor monitor={monitor} t={t} money={money} monthLabel={monthLabel} />
 
       <Card>
         <Disclosure summary={a.add} defaultOpen={active.length === 0}>

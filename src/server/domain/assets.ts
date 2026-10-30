@@ -7,6 +7,7 @@ import type { Actor } from "./actor";
 import { audit } from "./audit";
 import { DomainError, notFound } from "./errors";
 import { toDay } from "./dates";
+import { buildSeries, daysSinceValued, isStale, lastChange, monthEndValues, sumMonths, TRACKED_KINDS, type Change, type MonthValue, type TrendPoint } from "./asset-trend";
 import { daySchema, optionalDaySchema, optionalText, positiveAmountSchema } from "./schemas";
 
 type Tx = Prisma.TransactionClient;
@@ -189,4 +190,50 @@ export async function removeValuation(actor: Actor, id: string): Promise<void> {
     await tx.assetValuation.delete({ where: { id } });
     await audit(tx, actor, { action: "asset.valuation.remove", entity: "Asset", entityId: before.assetId, before });
   });
+}
+
+export interface MonitorRow {
+  asset: AssetView;
+  series: TrendPoint[];
+  change: Change | null;
+  /** Days since the latest valuation; null when never valued. */
+  age: number | null;
+  stale: boolean;
+  months: MonthValue[];
+}
+
+export interface Monitor {
+  rows: MonitorRow[];
+  /** Total of the tracked assets at each of the last months. */
+  months: MonthValue[];
+  total: bigint;
+  cost: bigint;
+  gain: bigint;
+  staleCount: number;
+}
+
+/** Market-priced assets (gold, stocks, funds, crypto) with their trend, so you can see what needs a fresh price. */
+export async function getMonitor(userId: string, today: string, monthCount = 6): Promise<Monitor> {
+  const rows = await db.asset.findMany({
+    where: { userId, archivedAt: null, kind: { in: [...TRACKED_KINDS] } },
+    include: { valuations: { orderBy: [{ valuedOn: "asc" }, { createdAt: "asc" }] } },
+  });
+  const out: MonitorRow[] = rows.map((a) => {
+    const latest = a.valuations[a.valuations.length - 1];
+    const view = viewOf({ ...a, valuations: latest ? [latest] : [] });
+    const series = buildSeries(
+      { day: a.purchasedOn ? toDay(a.purchasedOn) : null, value: a.purchaseValue },
+      a.valuations.map((v) => ({ day: toDay(v.valuedOn), value: v.value })),
+    );
+    return { asset: view, series, change: lastChange(series), age: daysSinceValued(view.valuedOn, today), stale: isStale(view.valuedOn, today), months: monthEndValues(series, today, monthCount) };
+  });
+  out.sort((a, b) => Number(b.asset.value - a.asset.value));
+  return {
+    rows: out,
+    months: sumMonths(out.map((r) => r.months)),
+    total: out.reduce((s, r) => s + r.asset.value, 0n),
+    cost: out.reduce((s, r) => s + (r.asset.purchaseValue ?? 0n), 0n),
+    gain: out.reduce((s, r) => s + (r.asset.gain ?? 0n), 0n),
+    staleCount: out.filter((r) => r.stale).length,
+  };
 }

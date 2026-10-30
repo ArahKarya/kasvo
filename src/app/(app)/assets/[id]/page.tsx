@@ -10,6 +10,8 @@ import { buttonClass, Card, Field, Input } from "@/components/ui";
 import { requireUser } from "@/server/auth";
 import { db } from "@/server/db";
 import { getAsset } from "@/server/domain/assets";
+import { AssetSparkline } from "@/components/asset-sparkline";
+import { buildSeries, isStale, lastChange, monthEndValues, STALE_AFTER_DAYS } from "@/server/domain/asset-trend";
 import { monthsUntil } from "@/server/domain/goal-math";
 import { todayIn } from "@/server/domain/dates";
 import { DomainError } from "@/server/domain/errors";
@@ -33,6 +35,14 @@ export default async function AssetPage({ params }: PageProps<"/assets/[id]">) {
   const money = (v: bigint) => formatMoney(v, user.baseCurrency, il);
   const a = t.assets;
   const Icon = ASSET_ICONS[asset.kind];
+  const series = buildSeries(
+    { day: asset.purchasedOn, value: asset.purchaseValue },
+    [...asset.valuations].reverse().map((v) => ({ day: v.valuedOn, value: v.value })),
+  );
+  const change = lastChange(series);
+  const months = monthEndValues(series, today, 12);
+  const monthLabel = (month: string) => new Intl.DateTimeFormat(il, { month: "short", timeZone: "UTC" }).format(new Date(`${month}-01T00:00:00Z`));
+  const stale = isStale(asset.valuedOn, today);
   const optional = (label: string) => `${label} (${t.common.optional})`;
 
   return (
@@ -86,8 +96,34 @@ export default async function AssetPage({ params }: PageProps<"/assets/[id]">) {
         </div>
       </section>
 
+      {series.length > 1 && (
+        <Card>
+          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-semibold">{a.trendTitle}</h2>
+            {change && (
+              <p className={`num text-sm ${change.delta > 0n ? "text-income" : change.delta < 0n ? "text-expense" : "text-muted"}`}>
+                {change.delta > 0n ? "+" : ""}
+                {money(change.delta)}
+                {change.pct !== null ? ` (${change.pct > 0 ? "+" : ""}${change.pct.toFixed(1)}%)` : ""} <span className="text-xs text-muted">{fmt(a.trendSince, { date: formatDay(change.since, il) })}</span>
+              </p>
+            )}
+          </div>
+          <AssetSparkline
+            points={months.map((m) => ({ label: monthLabel(m.month), value: m.value === null ? null : Number(m.value), text: m.value === null ? "" : money(m.value) }))}
+            tone={!change || change.delta === 0n ? "flat" : change.delta > 0n ? "up" : "down"}
+            summary={fmt(a.monitorChartAsset, { name: asset.name, months: String(months.length) })}
+            height={72}
+          />
+          <p className="mt-1 flex justify-between text-[10px] text-muted">
+            <span>{monthLabel(months[0].month)}</span>
+            <span>{monthLabel(months[months.length - 1].month)}</span>
+          </p>
+        </Card>
+      )}
+
       <Card>
         <h2 className="mb-1 font-semibold">{a.updateValue}</h2>
+        {stale && ["GOLD", "STOCK", "FUND", "CRYPTO"].includes(asset.kind) && <p className="mb-2 text-xs font-medium text-gold-text">{fmt(a.staleHint, { n: String(STALE_AFTER_DAYS) })}</p>}
         <p className="mb-4 text-xs text-muted">{a.valueHint}</p>
         <ActionForm action={valueAssetAction.bind(null, asset.id)} submit={t.common.save} success={t.common.saved} resetOnSuccess>
           <div className="grid gap-4 sm:grid-cols-3">

@@ -3,7 +3,7 @@ import "server-only";
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { db } from "@/server/db";
-import { ASSET_KINDS, createAsset, getAsset, listAssets, valueAsset, type AssetView } from "@/server/domain/assets";
+import { ASSET_KINDS, createAsset, getAsset, getMonitor, listAssets, valueAsset, type AssetView } from "@/server/domain/assets";
 import { DomainError } from "@/server/domain/errors";
 import type { McpContext } from "../context";
 import { money, run } from "../result";
@@ -45,6 +45,34 @@ export function registerAssetTools(server: McpServer, ctx: McpContext): void {
       run(async () => {
         const rows = await listAssets(ctx.actor.userId, { includeArchived });
         return { total: money(ctx, rows.filter((r) => !r.archived).reduce((s, r) => s + r.value, 0n)), assets: rows.map((a) => assetOut(ctx, a)) };
+      }),
+  );
+
+  server.registerTool(
+    "kasvo_asset_monitor",
+    {
+      title: "Price watch for market-priced assets",
+      description: "Gold, stocks, funds, and crypto with their last price move, month-end values for the last months, and which ones are older than 30 days and need a fresh price (then call kasvo_value_asset).",
+      inputSchema: { months: z.number().int().min(2).max(24).optional() },
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    ({ months }) =>
+      run(async () => {
+        const m = await getMonitor(ctx.actor.userId, today(ctx), months ?? 6);
+        return {
+          total: money(ctx, m.total),
+          cost: money(ctx, m.cost),
+          gain: money(ctx, m.gain),
+          needFreshPrice: m.staleCount,
+          totalByMonth: m.months.map((x) => ({ month: x.month, value: x.value === null ? null : money(ctx, x.value) })),
+          assets: m.rows.map((r) => ({
+            ...assetOut(ctx, r.asset),
+            daysSincePriced: r.age,
+            stale: r.stale,
+            lastChange: r.change ? { amount: money(ctx, r.change.delta), pct: r.change.pct === null ? null : Number(r.change.pct.toFixed(2)), since: r.change.since } : null,
+            byMonth: r.months.map((x) => ({ month: x.month, value: x.value === null ? null : money(ctx, x.value) })),
+          })),
+        };
       }),
   );
 
